@@ -6,7 +6,7 @@
 /*   By: ayakoubi <ayakoubi@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/06 23:02:49 by ayakoubi          #+#    #+#             */
-/*   Updated: 2024/03/09 16:42:59 by ayakoubi         ###   ########.fr       */
+/*   Updated: 2024/03/10 10:56:05 by ayakoubi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,7 +41,7 @@ int main()
 // server and client address structures
     struct sockaddr_in server_address;
     struct sockaddr_in connection_address;
-    char* message = "This is a message from the server";
+    char* message = strdup("This is a message from the server");
 // creating the socket with IPv4 domain and TCP protocol
     socket_descriptor = socket(AF_INET, SOCK_STREAM, 0);
 // Check if the socket is created successfully

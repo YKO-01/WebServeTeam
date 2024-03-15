@@ -6,17 +6,17 @@
 #    By: ayakoubi <ayakoubi@student.1337.ma>        +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/03/06 12:38:17 by ayakoubi          #+#    #+#              #
-#    Updated: 2024/03/06 12:39:16 by ayakoubi         ###   ########.fr        #
+#    Updated: 2024/03/15 14:51:49 by ayakoubi         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 # __ VAR & COMPILATION _________________________________________________________
 # ==============================================================================
-NAME		=	btc
+NAME		=	webserve
 CPP			=	c++
 CPPFLAGS	=	-Wall -Wextra -Werror -std=c++98
 OBJDIR		=	objs
-SRC			:=	main
+SRC			:=	tcpClient 
 OBJ			:=	$(addprefix $(OBJDIR)/, $(addsuffix .o, $(SRC)))
 SRC			:=	$(addsuffix .cpp, $(SRC))
 
