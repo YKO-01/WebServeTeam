@@ -6,16 +6,49 @@
 /*   By: ayakoubi <ayakoubi@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/13 13:52:09 by ayakoubi          #+#    #+#             */
-/*   Updated: 2024/03/15 14:53:34 by ayakoubi         ###   ########.fr       */
+/*   Updated: 2024/03/17 17:14:14 by ayakoubi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "webserve.hpp"
 
+
+//void	Write_Routine(int sock, char *buf);
+//void	Read_Routine(int sock, char *buf);
+void	Write_Routine(int sock, char *buf)
+{
+	while (1)
+	{
+		std::cin >> buf;
+		send(sock, buf, BUFFER_SIZE, 0);
+		if (strlen(buf) == 1 && (buf[0] == 'q' || buf[0] == 'Q'))
+		{
+			close(sock);
+			std::cout << "client is disconnected" << std::endl;
+			return ;
+		}
+		memset(buf, 0, BUFFER_SIZE);
+	}
+}
+
+void	Read_Routine(int sock, char *buf)
+{
+	while (1)
+	{
+		recv(sock, buf, BUFFER_SIZE, 0);
+		if (strlen(buf) <= 0)
+		{
+			close(sock);
+			return ;
+		}
+		std::cout << "recieve from server : " << buf << std::endl;
+		memset(buf, 0, BUFFER_SIZE);
+	}
+}
 int main(int ac, char **av)
 {
-	if (ac != 2)
-		return (1);
+	(void) av;
+	(void) ac;
 	int clientSD;
 	// create a socket for the client 
 	clientSD = socket(AF_INET, SOCK_STREAM, 0);
@@ -38,13 +71,30 @@ int main(int ac, char **av)
 	}
 	std::cout << "connection exist" << std::endl;
 	
-	// send data to the server
-	send(clientSD, av[1], strlen(av[1]), 0);
-	
-	// recieve data from the server
-	memset(av[1], 0, 1024);
-	recv(clientSD, av[1], 1024, 0);
-	std::cout << av[1] << std::endl;
-	
+	char buffer[BUFFER_SIZE];
+//	buffer = NULL;
+
+	int pid = fork();
+	if (pid == 0)
+	{
+	/*	std::cin >> buffer;
+		send(clientSD, buffer, BUFFER_SIZE, 0);
+		memset(buffer, 0, BUFFER_SIZE);*/
+		Write_Routine(clientSD, static_cast<char *>(buffer));
+	}
+	else
+	{
+		/*revc(clientSD, (const void*)buffer, BUFFER_SIZE 0);
+		if (strlen(buffer) <= 0)
+			close(clientSD);
+		else
+		{
+			std::cout << buffer << std::endl;
+			memset(buffer, 0, BUFFER_SIZE);
+		}*/
+		Read_Routine(clientSD, static_cast<char *>(buffer));
+	}		
 	return (0);
 }
+
+

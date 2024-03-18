@@ -6,7 +6,7 @@
 /*   By: ayakoubi <ayakoubi@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/15 13:37:56 by ayakoubi          #+#    #+#             */
-/*   Updated: 2024/03/15 14:54:41 by ayakoubi         ###   ########.fr       */
+/*   Updated: 2024/03/17 17:09:02 by ayakoubi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,6 +24,9 @@ int main(int ac, char **av)
 		std::cout << "failed to creation a socket" << std::endl;
 		exit(EXIT_FAILURE);
 	}
+	// set socket option
+	int	option = TRUE; 
+	setsockopt(serverSD, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(option));  
 	// bind this socket to a specific port number
 	struct sockaddr_in serverAddress;
 	serverAddress.sin_family = AF_INET;
@@ -44,23 +47,44 @@ int main(int ac, char **av)
 
 	// accept the connection request
 	struct sockaddr_in conClientAdd;
-	memset(&conClientAdd, 0, sizeof(conClientAdd));
 	socklen_t clientAddLength = sizeof(conClientAdd);
-	int conSocket = accept(serverSD, (struct sockaddr*)&conClientAdd, &clientAddLength);
-	if (conSocket < 0)
+	while (1)
 	{
-		std::cout << "failed to accept connection to request" << std::endl;
-		exit(EXIT_FAILURE);
+		memset(&conClientAdd, 0, sizeof(conClientAdd));
+		int conSocket = accept(serverSD, (struct sockaddr*)&conClientAdd, &clientAddLength);
+		if (conSocket < 0)
+		{
+			std::cout << "failed to accept connection to request" << std::endl;
+			continue;
+		}
+		std::cout << "new client with is connected" << std::endl;
+		int pid = fork();
+		if (pid < 0)
+		{
+			close(conSocket);
+			continue;
+		}
+		if (pid == 0)
+		{
+			close(serverSD);
+			char buffer[BUFFER_SIZE];
+			while (1)
+			{
+				// send or recieve data from the client
+				memset(buffer, 0, strlen(buffer));
+				recv(conSocket, buffer, BUFFER_SIZE, 0);
+				if ((buffer[0] == 'q' || buffer[0] == 'Q'))
+				{
+					close(conSocket);
+					exit(1);
+				}
+				std::cout << buffer << std::endl;
+				send(conSocket, buffer, BUFFER_SIZE, 0);
+			}
+		}
+		else
+			close(conSocket);
 	}
-	// send or recieve data from the client
-	char recieveData[1024];
-	memset(recieveData, 0, strlen(recieveData));
-	recv(conSocket, recieveData, 1024, 0);
-	std::cout << recieveData << std::endl;	
-	// close the socket
-	close(serverSD);
-	close(conSocket);
-
 	return (0);
 }
 
