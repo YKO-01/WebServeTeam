@@ -41,7 +41,6 @@ void Server::display_server()
     std::cout << "host: " << host << std::endl;
     std::cout << "port: " << port << std::endl;
     std::cout << "server_names: " << std::endl;
-    // std::cout << "server_name size:}" << server_names.size() << std::endl;
     for (size_t i = 0; i < server_names.size(); i++)
         std::cout << "	" <<server_names[i] << std::endl;
     std::cout << "default_server: " << default_server << std::endl;
@@ -75,16 +74,12 @@ int get_count(std::string str,char token,int all)
 {
     int tabcount = 0;
     if(all == 0)
-    {
         for (size_t l = 0; str[l] != '\0' && str[l] == '\t'; l++) 
             tabcount++;
-    }
     else if(all == 1)
-    {
         for (size_t l = 0; str[l] != '\0'; l++) 
             if(str[l] == token)
                 tabcount++;
-    }
     else
     {
         bool insideQuotes = false;
@@ -102,17 +97,17 @@ void display(std::pair<std::string, std::vector<std::string> > pair)
 {
     std::cout << "first:" <<  pair.first << std::endl;
     if(pair.second.size() == 0)
-    {
         return;
-    }
     else
     {
         std::cout << "secend::" << std::endl;
         for (size_t i = 0; i < pair.second.size(); i++)
-        {
             std::cout << pair.second[i] << std::endl;
-        }
     }
+}
+void split_router_helper()
+{
+
 }
 vecOfvecOfPair split_router(std::vector<std::vector<std::string> > big_vec)
 {
@@ -167,15 +162,6 @@ vecOfvecOfPair split_router(std::vector<std::vector<std::string> > big_vec)
         routerInfoSegments.push_back(ll);
         ll.clear();
     }
-    std::cout << "++-+-+-+--------++-+-+-++-+-+-+-+-+-" << std::endl;
-    std::cout << "++-+-+-+--------++-+-+-++-+-+-+-+-+-" << std::endl;
-
-    // for (size_t i = 0; i < routerInfoSegments.size(); i++)
-    // {
-    //     for (size_t j = 0; j < routerInfoSegments[i].size(); j++)
-    //         display(routerInfoSegments[i][j]);
-    //     std::cout << "----------------" << std::endl;
-    // }
     return routerInfoSegments;
 }
 bool isAllWhitespace(const std::string& str) {
@@ -187,20 +173,19 @@ bool isAllWhitespace(const std::string& str) {
 std::vector<std::string> split_stream(std::string str,char token)
 {
     std::istringstream iss(str);
-      std::vector<std::string> results;
-      std::string temp;
-    std::cout << "-=-=-=-=-=-=-=-=-=-" << std::endl;
-      while (std::getline(iss, temp, token)) 
-            if (!temp.empty()) 
-                results.push_back(trim(temp));
+    std::vector<std::string> results;
+    std::string temp;
+    while (std::getline(iss, temp, token)) 
+        if (!temp.empty()) 
+            results.push_back(trim(temp));
     return results;
+}
+void check_errors(std::string str,std::string error)
+{
+    
 }
 void host_pars(Server &sv,std::string line)
 {
-    // std::cout << "///////============//////" << sv.host << std::endl;
-    // sv.display_server();
-    // std::cout << "/////============////////" << sv.host << std::endl;
-
     if(!sv.host.empty())
         ft_exit("host::error agian host");
     std::string info;
@@ -229,16 +214,14 @@ void host_pars(Server &sv,std::string line)
         }
         sv.host = info;
     }
-    // std::cout << "host:: " << sv.host << std::endl;
 }	
 void port_pars(Server &sv,std::string line)
 {
-    // std::cout << "port befor: " << sv.port << std::endl;
     if(sv.port != -1)
         ft_exit("port:: error agian port");
     std::string info;
     info = line.substr(line.find(":") + 1);
-      std::vector<std::string> resl;
+    std::vector<std::string> resl;
     resl = split_stream(info,' ');
     if(resl.size() == 0 || resl.size() > 1)
         ft_exit("port:: error ktar mn 1");
@@ -253,9 +236,8 @@ void server_name_pars(Server &sv,std::string line)
 {
     std::string info;
     info = line.substr(line.find(":") + 1);
-      std::vector<std::string> resl;
+    std::vector<std::string> resl;
     resl = split_stream(info,',');
-    //loop for resl and print it
     for (size_t i = 0; i < resl.size(); i++)
         resl[i] = trim(resl[i]);
     if(resl.size() == 0)
@@ -270,7 +252,7 @@ void client_body_size_pars(Server &sv,std::string line)
 {
     std::string info;
     info = line.substr(line.find(":") + 1);
-      std::vector<std::string> resl;
+    std::vector<std::string> resl;
     resl = split_stream(info,' ');
     if(resl.size() == 0 || resl.size() > 1)
         ft_exit("client_body:: error ktar mn 1");
@@ -388,28 +370,20 @@ void router_pars(Server &sv,std::vector<std::string> infos)
             else
                 route.directory_listing = false;
         }
+        else
+            ft_exit("router::error not valid key");
     }
     sv.routes.push_back(route);
 }
 
 void insert_data_to_server(vecOfvecOfPair server_router_info, Server &serv)
 {
-    std::vector<std::string> strs;
-    strs.push_back("host");
-    strs.push_back("port");
-    strs.push_back("server_names");
-    strs.push_back("client_body_size");
-    strs.push_back("error_pages");
-    strs.push_back("router");
     std::vector<Server> servers;
     servers.resize(server_router_info.size());
     for (size_t i = 0; i < server_router_info.size(); i++)
     {
-        // servers[i].display_server();
-        std::cout << "*=*=*==*=*=*=*=*=*=*=*=*=*=*=*" << std::endl;
         for (size_t j = 0; j < server_router_info[i].size(); j++)
         {
-            std::cout << "server_router_info[i][j].first:" << server_router_info[i][j].first << std::endl;
             if(server_router_info[i][j].first.find("host") != std::string::npos)
                 host_pars(serv, server_router_info[i][j].first);
             else if(server_router_info[i][j].first.find("port") != std::string::npos)
@@ -424,23 +398,13 @@ void insert_data_to_server(vecOfvecOfPair server_router_info, Server &serv)
                 error_pages_pars(serv, server_router_info[i][j].second);
             else if(server_router_info[i][j].first.find("router") != std::string::npos)
                 router_pars(serv, server_router_info[i][j].second);
-
             else
                 ft_exit("error::not valid key");
         }
-        serv.display_server();
-        // servers.push_back(serv);
         servers[i] = serv;
         serv.routes.clear();
         serv.clear_server();
     }
-    // std::cout << "server size:" << servers.size() << std::endl;
-    // for (size_t i = 0; i < servers.size(); i++)
-    // {
-    // 	std::cout << "*=*=*==*=*=*=*=*=*=*=*=*=*=*=*" << std::endl;
-    // 	servers[i].display_server();
-    // }
-    
 }
 int main(int ac,char **av)
 {
@@ -479,6 +443,5 @@ int main(int ac,char **av)
     MyReadFile.close();
     vecOfvecOfPair server_router_info = split_router(big_vec);
     Server servers;
-    std::cout << "=--=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=" << std::endl;
     insert_data_to_server(server_router_info, servers);
 }
