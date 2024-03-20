@@ -6,7 +6,7 @@
 /*   By: ayakoubi <ayakoubi@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/15 13:37:56 by ayakoubi          #+#    #+#             */
-/*   Updated: 2024/03/17 17:09:02 by ayakoubi         ###   ########.fr       */
+/*   Updated: 2024/03/18 16:06:54 by ayakoubi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,32 +58,22 @@ int main(int ac, char **av)
 			continue;
 		}
 		std::cout << "new client with is connected" << std::endl;
-		int pid = fork();
-		if (pid < 0)
+	//	close(serverSD);
+		char buffer[BUFFER_SIZE];
+		while (1)
 		{
-			close(conSocket);
-			continue;
-		}
-		if (pid == 0)
-		{
-			close(serverSD);
-			char buffer[BUFFER_SIZE];
-			while (1)
+			// send or recieve data from the client
+			memset(buffer, 0, strlen(buffer));
+			recv(conSocket, buffer, BUFFER_SIZE, 0);
+			if ((buffer[0] == 'q' || buffer[0] == 'Q'))
 			{
-				// send or recieve data from the client
-				memset(buffer, 0, strlen(buffer));
-				recv(conSocket, buffer, BUFFER_SIZE, 0);
-				if ((buffer[0] == 'q' || buffer[0] == 'Q'))
-				{
-					close(conSocket);
-					exit(1);
-				}
-				std::cout << buffer << std::endl;
-				send(conSocket, buffer, BUFFER_SIZE, 0);
+				close(conSocket);
+				break;
 			}
+			std::cout << buffer << std::endl;
+			send(conSocket, buffer, BUFFER_SIZE, 0);
 		}
-		else
-			close(conSocket);
+		close(conSocket);
 	}
 	return (0);
 }
