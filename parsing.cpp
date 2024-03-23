@@ -77,9 +77,9 @@ int get_count(std::string str,char token,int all)
         for (size_t l = 0; str[l] != '\0' && str[l] == '\t'; l++) 
             tabcount++;
     else if(all == 1)
-        for (size_t l = 0; str[l] != '\0'; l++) 
+        {for (size_t l = 0; str[l] != '\0'; l++) 
             if(str[l] == token)
-                tabcount++;
+                tabcount++;}
     else
     {
         bool insideQuotes = false;
