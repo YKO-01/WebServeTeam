@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   webserve.hpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ayakoubi <ayakoubi@student.1337.ma>        +#+  +:+       +#+        */
+/*   By: ayakoubi <ayakoubi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/15 13:38:23 by ayakoubi          #+#    #+#             */
-/*   Updated: 2024/03/17 00:07:19 by ayakoubi         ###   ########.fr       */
+/*   Updated: 2024/03/25 17:01:48 by ayakoubi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,5 +26,6 @@
 #define TRUE 1
 #define FALSE 0
 #define BUFFER_SIZE 50
+#define MAX_CONNECTION 10
 
 #endif
