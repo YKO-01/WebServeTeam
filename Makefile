@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: ayakoubi <ayakoubi@student.1337.ma>        +#+  +:+       +#+         #
+#    By: ayakoubi <ayakoubi@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/03/06 12:38:17 by ayakoubi          #+#    #+#              #
-#    Updated: 2024/03/15 14:51:49 by ayakoubi         ###   ########.fr        #
+#    Updated: 2024/03/29 16:31:36 by ayakoubi         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -15,10 +15,15 @@
 NAME		=	webserve
 CPP			=	c++
 CPPFLAGS	=	-Wall -Wextra -Werror -std=c++98
+INC			=	incs
 OBJDIR		=	objs
-SRC			:=	tcpClient 
-OBJ			:=	$(addprefix $(OBJDIR)/, $(addsuffix .o, $(SRC)))
-SRC			:=	$(addsuffix .cpp, $(SRC))
+SRCDIR		=	srcs
+BUILDDIR	=	build_server
+SRCBUILD	:=	tcpServer initSocket
+OBJBUILD	:=	$(addprefix $(OBJDIR)/$(BUILDDIR)/, $(addsuffix .o, $(SRCBUILD)))
+SRCBUILD	:=	$(addprefix $(SRCDIR)/$(BUILDDIR)/, $(addsuffix .cpp, $(SRCBUILD)))
+# OBJBUILD	:=	$(addprefix $(OBJDIR)/, $(patsubst %.cpp,%.o,$(SRCBUILD)))
+
 
 # __ COLOR _____________________________________________________________________
 # ==============================================================================
@@ -31,15 +36,16 @@ RESET = \033[0m
 
 # __ RULES _____________________________________________________________________
 # ==============================================================================
-$(OBJDIR)/%.o: %.cpp
+$(OBJDIR)/%.o: $(SRCDIR)/%.cpp
 	@mkdir -p $(OBJDIR)
-	@$(CPP) $(CPPFLAGS) -c $< -o $@
+	@mkdir -p $(OBJDIR)/$(BUILDDIR)
+	@$(CPP) $(CPPFLAGS) -c $< -I $(INC) -o $@
 	@echo "$(GREEN) [OK] $(RESET) $(YELLOW) compile >>>> $< $(RESET)"
 
 all:	$(NAME)
 
-$(NAME) :	$(OBJ)
-	@$(CPP) $(CPPFLAGS) $^ -o $(NAME)
+$(NAME) :	$(OBJBUILD)
+	@$(CPP) $(CPPFLAGS) $^ -I $(INC) -o $(NAME)
 	@@echo "$(GREEN) ------ Built success ------ $(RESET)"
 
 clean:
