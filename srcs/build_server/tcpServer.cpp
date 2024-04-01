@@ -6,18 +6,14 @@
 /*   By: ayakoubi <ayakoubi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/15 13:37:56 by ayakoubi          #+#    #+#             */
-/*   Updated: 2024/03/29 17:55:36 by ayakoubi         ###   ########.fr       */
+/*   Updated: 2024/04/01 22:19:07 by ayakoubi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "build_server.hpp"
-
-int main(int ac, char **av)
+void	tcpServer()
 {
-	(void) ac;
-	(void) av;
-	
-	int serverSD = initSocket();
+		int serverSD = initSocket();
 	fd_set	read_fd_set;
 
 	/*initialize all connection and set the first entery to server fd*/
@@ -95,6 +91,6 @@ int main(int ac, char **av)
 		if (all_connection[i] > 0)
 			close(all_connection[i]);
 	}
-	return (0);
 }
+
 

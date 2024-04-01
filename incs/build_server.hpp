@@ -6,7 +6,7 @@
 /*   By: ayakoubi <ayakoubi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/28 19:37:27 by ayakoubi          #+#    #+#             */
-/*   Updated: 2024/03/29 18:07:53 by ayakoubi         ###   ########.fr       */
+/*   Updated: 2024/04/01 22:19:36 by ayakoubi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,6 +29,8 @@
 #define SERVERPORT  5555
 
 // init server
+void	tcpServer();
 int initSocket();
+
 
 #endif

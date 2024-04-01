@@ -6,7 +6,7 @@
 #    By: ayakoubi <ayakoubi@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/03/06 12:38:17 by ayakoubi          #+#    #+#              #
-#    Updated: 2024/03/29 16:31:36 by ayakoubi         ###   ########.fr        #
+#    Updated: 2024/04/01 22:20:54 by ayakoubi         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -19,7 +19,12 @@ INC			=	incs
 OBJDIR		=	objs
 SRCDIR		=	srcs
 BUILDDIR	=	build_server
+
+SRCMAIN		=	main
 SRCBUILD	:=	tcpServer initSocket
+
+OBJMAIN		:=	$(addprefix $(OBJDIR)/, $(addsuffix .o, $(SRCMAIN)))
+SRCMAIN		:=	$(addprefix $(SRCDIR)/, $(addsuffix .cpp, $(SRCMAIN)))
 OBJBUILD	:=	$(addprefix $(OBJDIR)/$(BUILDDIR)/, $(addsuffix .o, $(SRCBUILD)))
 SRCBUILD	:=	$(addprefix $(SRCDIR)/$(BUILDDIR)/, $(addsuffix .cpp, $(SRCBUILD)))
 # OBJBUILD	:=	$(addprefix $(OBJDIR)/, $(patsubst %.cpp,%.o,$(SRCBUILD)))
@@ -44,7 +49,7 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
 
 all:	$(NAME)
 
-$(NAME) :	$(OBJBUILD)
+$(NAME) :	$(OBJBUILD) $(OBJMAIN)
 	@$(CPP) $(CPPFLAGS) $^ -I $(INC) -o $(NAME)
 	@@echo "$(GREEN) ------ Built success ------ $(RESET)"
 
