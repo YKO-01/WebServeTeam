@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   parsing.cpp                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: hkasbaou <hkasbaou@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/03/26 14:07:13 by hkasbaou          #+#    #+#             */
+/*   Updated: 2024/04/03 12:59:33 by hkasbaou         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -304,14 +316,12 @@ void router_pars(Server &sv,std::vector<std::string> infos)
             if(info[0] != '\"' || info[info.size() - 1] != '\"')
                 ft_exit("router_path:: error \"");
             route.path = info;
-            std::cout << "routeeeer:" << route.path << std::endl;
         }
         else if(infos[i].find("methods:") != std::string::npos)
         {
             std::string line;
             int count_methods = 0;
             line = trim(infos[i].substr(infos[i].find(":") + 1));
-            std::cout << "line::" << line << std::endl;
             std::vector<std::string> resl;
             resl = split_stream(line,',');
             for (size_t i = 0; i < resl.size(); i++)
@@ -325,7 +335,6 @@ void router_pars(Server &sv,std::vector<std::string> infos)
                 else
                     ft_exit("router_methods:: error alphabetic");
             }
-            std::cout << "size:" << resl.size() <<"|  "<< count_methods << std::endl;
             if(resl.size() != count_methods)
                 ft_exit("router_methods:: error no methods");
             count_methods = 0;
@@ -333,7 +342,6 @@ void router_pars(Server &sv,std::vector<std::string> infos)
         else if(infos[i].find("directory:") != std::string::npos)
         {
             std::string info;
-            std::cout << "infos:"<< infos[i] << std::endl;
             info = trim(infos[i].substr(infos[i].find(":") + 1));
             if(info.find_first_not_of("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_-./\"") != std::string::npos)
                 ft_exit("router_directory:: error alphabetic");
@@ -347,7 +355,6 @@ void router_pars(Server &sv,std::vector<std::string> infos)
         {
             std::string info;
             info = trim(infos[i].substr(infos[i].find(":") + 1));
-            std::cout << "info:" << info << std::endl;
             if(info.find_first_not_of("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ:_-./\"") != std::string::npos)
                 ft_exit("router_redirect:: error alphabetic");
             if(get_count(info,'\"',1) != 2)
@@ -360,7 +367,6 @@ void router_pars(Server &sv,std::vector<std::string> infos)
         {
             std::string info;
             info = trim(infos[i].substr(infos[i].find(":") + 1));
-            std::cout << "info:" << info << std::endl;
             if(info.find_first_not_of("abcdefjhigklmnopqrstuvwxyz") != std::string::npos)
                 ft_exit("router_directory_listing:: error alphabetic");
             if(info != "on" && info != "off")
@@ -375,8 +381,23 @@ void router_pars(Server &sv,std::vector<std::string> infos)
     }
     sv.routes.push_back(route);
 }
-
-void insert_data_to_server(vecOfvecOfPair server_router_info, Server &serv)
+void check_info_exit(std::vector<Server> s)
+{
+    for (size_t i = 0; i < s.size(); i++)
+    {
+        if(s[i].host.empty())
+            ft_exit("Error::no host");
+        if(s[i].port == -1)
+            ft_exit("Error::no port");
+        if(s[i].server_names.size() == 0)
+            ft_exit("server_names::error");
+        if(s[i].client_body_size == "null")
+            ft_exit("client_body_size::error");
+        if(s[i].routes.size() == 0)
+            ft_exit("router::error");
+    }
+}
+std::vector<Server> insert_data_to_server(vecOfvecOfPair server_router_info, Server &serv)
 {
     std::vector<Server> servers;
     servers.resize(server_router_info.size());
@@ -405,6 +426,8 @@ void insert_data_to_server(vecOfvecOfPair server_router_info, Server &serv)
         serv.routes.clear();
         serv.clear_server();
     }
+
+    return servers;
 }
 int main(int ac,char **av)
 {
@@ -443,5 +466,6 @@ int main(int ac,char **av)
     MyReadFile.close();
     vecOfvecOfPair server_router_info = split_router(big_vec);
     Server servers;
-    insert_data_to_server(server_router_info, servers);
+    std::vector<Server> all_info;
+    all_info = insert_data_to_server(server_router_info, servers);
 }
