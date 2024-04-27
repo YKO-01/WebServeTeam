@@ -6,91 +6,98 @@
 /*   By: ayakoubi <ayakoubi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/15 13:37:56 by ayakoubi          #+#    #+#             */
-/*   Updated: 2024/04/01 22:19:07 by ayakoubi         ###   ########.fr       */
+/*   Updated: 2024/04/27 11:07:49 by ayakoubi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "build_server.hpp"
+#include <fcntl.h>
+bool setNonBlocking(int sockfd) {
+    int flags = fcntl(sockfd, F_GETFL, 0);
+    if (flags == -1) {
+        // Failed to get socket flags
+        return false;
+    }
+
+    // Set the socket to non-blocking mode
+    if (fcntl(sockfd, F_SETFL, flags | O_NONBLOCK) == -1) {
+        // Failed to set socket to non-blocking mode
+        return false;
+    }
+
+    return true;
+}
 void	tcpServer()
 {
-		int serverSD = initSocket();
-	fd_set	read_fd_set;
+	int serverSD = initSocket();
+	fd_set FDs, FDsCopy;
+	int fdMax;
+	int fdNum;
+	char buffer[BUFFER_SIZE];
 
-	/*initialize all connection and set the first entery to server fd*/
-	int all_connection[MAX_CONNECTION];
-	int i;
-	for (i = 0; i < MAX_CONNECTION; i++)
-		all_connection[i] = -1;
-	all_connection[0] = serverSD;
-	
-	// accept the connection request
+	int conSocket;
 	struct sockaddr_in conClientAdd;
 	socklen_t clientAddLength = sizeof(conClientAdd);
+	memset(&conClientAdd, 0, sizeof(conClientAdd));
+	int i;
+
+	FD_ZERO(&FDs);
+	FD_SET(serverSD, &FDs);
+	fdMax = serverSD;
+
 	while (1)
 	{
-		FD_ZERO(&read_fd_set);
-		// set the fd_set before passing it to the select all
-		for (i = 0; i < MAX_CONNECTION; i++)
+		FDsCopy = FDs;	
+		fdNum = select(fdMax + 1, &FDsCopy, 0, 0, 0);
+		if (fdNum >= 0)
 		{
-			if (all_connection[i] >= 0)
-				FD_SET(all_connection[i], &read_fd_set);
-		}
-
-		int ret_val = select(FD_SETSIZE, &read_fd_set, NULL, NULL, NULL);
-		if (ret_val >= 0)
-		{
-			std::cout << "Select returned with " << ret_val << std::endl;
-			if (FD_ISSET(serverSD, &read_fd_set))
+			for(i = 0; i < (fdMax + 1); i++)
 			{
-				std::cout << "Returned SD is " << serverSD << std::endl;
-				memset(&conClientAdd, 0, sizeof(conClientAdd));
-				int conSocket = accept(serverSD, (struct sockaddr*)&conClientAdd, &clientAddLength);
-				if (conSocket < 0)
+				if (i > 0 && FD_ISSET(i, &FDsCopy))
 				{
-					std::cout << "failed to accept connection to request" << std::endl;
-					continue;
-				}
-				std::cout << "new client with is connected" << std::endl;
-				for (i = 0; i < MAX_CONNECTION; i++)
-				{
-					if (all_connection[i] < 0)
+					if (i == serverSD)
 					{
-						all_connection[i] = conSocket;
-						break;
+						conSocket = accept(serverSD, (struct sockaddr*)&conClientAdd, &clientAddLength);
+						if (conSocket < 0)
+							continue;
+						if (!setNonBlocking(conSocket))
+						{
+							close(conSocket);
+							continue;
+						}
+						FD_SET(conSocket, &FDs);
+						if (fdMax < conSocket)
+							fdMax = conSocket;
+						std::cout << "client with id : " << conSocket << " is connected" << std::endl;
+					}
+					else
+					{
+						bzero(buffer, BUFFER_SIZE);
+						int bytesNum;
+						bytesNum = 0;
+						
+						bytesNum = recv(i, buffer, BUFFER_SIZE, 0);
+						std::cout << " number of bytes : " << bytesNum  << " id : " << i << std::endl;
+						if (bytesNum <= 0)
+						{
+							FD_CLR(i, &FDs);
+							close(i);
+							break;
+						}
+						else if (bytesNum > 0)
+						{
+							std::cout << buffer << std::endl;
+							send(i, buffer, bytesNum, 0);
+						}
 					}
 				}
-				ret_val--;
-				if(!ret_val)
-					continue;
-			}
-
-			// Check if the SD with event is non-server sd
-			char buffer[BUFFER_SIZE];
-			for (i = 0; i < MAX_CONNECTION; i++)
-			{
-				if (all_connection[i] > 0 && (FD_ISSET(all_connection[i], &read_fd_set)))
-				{
-					std::cout << "Returned sd id " << all_connection[i] << std::endl;
-					memset(buffer, 0, strlen(buffer));
-					ret_val = recv(all_connection[i], buffer, BUFFER_SIZE, 0);
-					if ((buffer[0] == 'q' || buffer[0] == 'Q'))
-					{
-						close(all_connection[i]);
-						break;
-					}
-					std::cout << buffer << std::endl;
-					send(all_connection[i], buffer, BUFFER_SIZE, 0);
-				}
-				ret_val--;
-				if (!ret_val) continue;
 			}
 		}
 	}
-	for (i = 0; i < MAX_CONNECTION; i++)
-	{
-		if (all_connection[i] > 0)
-			close(all_connection[i]);
-	}
+	for (i = 0; i < fdMax + 1; i++)
+		close(i);
+	close(serverSD);
 }
+
 
 

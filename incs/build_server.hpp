@@ -6,7 +6,7 @@
 /*   By: ayakoubi <ayakoubi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/28 19:37:27 by ayakoubi          #+#    #+#             */
-/*   Updated: 2024/04/01 22:19:36 by ayakoubi         ###   ########.fr       */
+/*   Updated: 2024/04/27 10:55:29 by ayakoubi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,7 @@
 
 #define TRUE 1
 #define FALSE 0
-#define BUFFER_SIZE 50
+#define BUFFER_SIZE 1024
 #define MAX_CONNECTION 10
 #define SERVERPORT  5555
 
