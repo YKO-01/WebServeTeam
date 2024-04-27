@@ -6,7 +6,7 @@
 /*   By: ayakoubi <ayakoubi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/28 19:37:27 by ayakoubi          #+#    #+#             */
-/*   Updated: 2024/04/27 10:55:29 by ayakoubi         ###   ########.fr       */
+/*   Updated: 2024/04/27 11:20:16 by ayakoubi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <fstream>
+#include <fcntl.h>
 
 #define TRUE 1
 #define FALSE 0
@@ -28,9 +29,20 @@
 #define MAX_CONNECTION 10
 #define SERVERPORT  5555
 
-// init server
-void	tcpServer();
-int initSocket();
+
+class TCPServer
+{
+	private:
+		int serverSD;
+		fd_set FDs;
+		int fdMax;
+	public:
+		TCPServer();
+		~TCPServer();
+		int initSocket();
+		void runServer();
+};
+
 
 
 #endif

@@ -6,12 +6,62 @@
 /*   By: ayakoubi <ayakoubi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/15 13:37:56 by ayakoubi          #+#    #+#             */
-/*   Updated: 2024/04/27 11:07:49 by ayakoubi         ###   ########.fr       */
+/*   Updated: 2024/04/27 11:41:05 by ayakoubi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "build_server.hpp"
-#include <fcntl.h>
+
+
+// __ Constructor & Destructor _________________________________________________
+// =============================================================================
+TCPServer::TCPServer():serverSD(-1), fdMax(-1)
+{
+	FD_ZERO(&FDs);
+}
+
+TCPServer::~TCPServer()
+{
+	close(serverSD);
+}
+
+
+// __ Init Socket  _____________________________________________________________
+// =============================================================================
+int	TCPServer::initSocket()
+{
+	// create a socket for the server
+	serverSD = socket(AF_INET, SOCK_STREAM, 0);
+	if (serverSD < 0)
+	{
+		std::cout << "failed to creation a socket" << std::endl;
+		return (false);
+	}
+	// set socket option
+	int	option = TRUE; 	
+	setsockopt(serverSD, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(option));  
+	// bind this socket to a specific port number
+	struct sockaddr_in serverAddress;
+	serverAddress.sin_family = AF_INET;
+	serverAddress.sin_addr.s_addr = INADDR_ANY;
+	serverAddress.sin_port = htons(SERVERPORT);
+	
+	if (bind(serverSD, (struct sockaddr*)&serverAddress, sizeof(serverAddress)) < 0)
+	{
+		std::cout << "binding failed" << std::endl;
+		return (false);
+	}
+	// listen to the client connection request
+	if (listen(serverSD, 1) < 0)
+	{
+		std::cout << "failed to listening" << std::endl;
+		return (false);
+	}
+	FD_SET(serverSD, &FDs);
+    fdMax = serverSD;
+	return (serverSD);
+}
+
 bool setNonBlocking(int sockfd) {
     int flags = fcntl(sockfd, F_GETFL, 0);
     if (flags == -1) {
@@ -27,11 +77,11 @@ bool setNonBlocking(int sockfd) {
 
     return true;
 }
-void	tcpServer()
+
+void	TCPServer::runServer()
 {
-	int serverSD = initSocket();
-	fd_set FDs, FDsCopy;
-	int fdMax;
+	//int serverSD = initSocket();
+	fd_set FDsCopy;
 	int fdNum;
 	char buffer[BUFFER_SIZE];
 
@@ -41,9 +91,9 @@ void	tcpServer()
 	memset(&conClientAdd, 0, sizeof(conClientAdd));
 	int i;
 
-	FD_ZERO(&FDs);
-	FD_SET(serverSD, &FDs);
-	fdMax = serverSD;
+//	FD_ZERO(&FDs);
+//	FD_SET(serverSD, &FDs);
+//	fdMax = serverSD;
 
 	while (1)
 	{
