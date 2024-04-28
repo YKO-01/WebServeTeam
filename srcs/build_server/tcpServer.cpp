@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   tcpServer.cpp                                      :+:      :+:    :+:   */
+/*   TCPServer.cpp                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: ayakoubi <ayakoubi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/15 13:37:56 by ayakoubi          #+#    #+#             */
-/*   Updated: 2024/04/27 11:41:05 by ayakoubi         ###   ########.fr       */
+/*   Updated: 2024/04/28 14:40:31 by ayakoubi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,7 +63,7 @@ int	TCPServer::initSocket()
 }
 
 bool setNonBlocking(int sockfd) {
-    int flags = fcntl(sockfd, F_GETFL, 0);
+    int flags = fcntl(sockfd, O_NONBLOCK, 0);
     if (flags == -1) {
         // Failed to get socket flags
         return false;
@@ -78,23 +78,20 @@ bool setNonBlocking(int sockfd) {
     return true;
 }
 
+
 void	TCPServer::runServer()
 {
-	//int serverSD = initSocket();
 	fd_set FDsCopy;
 	int fdNum;
 	char buffer[BUFFER_SIZE];
-
+	int	i;
 	int conSocket;
 	struct sockaddr_in conClientAdd;
+	int bytesNum = 0;
+	std::string request;
+
 	socklen_t clientAddLength = sizeof(conClientAdd);
 	memset(&conClientAdd, 0, sizeof(conClientAdd));
-	int i;
-
-//	FD_ZERO(&FDs);
-//	FD_SET(serverSD, &FDs);
-//	fdMax = serverSD;
-
 	while (1)
 	{
 		FDsCopy = FDs;	
@@ -122,22 +119,30 @@ void	TCPServer::runServer()
 					}
 					else
 					{
-						bzero(buffer, BUFFER_SIZE);
-						int bytesNum;
-						bytesNum = 0;
-						
-						bytesNum = recv(i, buffer, BUFFER_SIZE, 0);
-						std::cout << " number of bytes : " << bytesNum  << " id : " << i << std::endl;
-						if (bytesNum <= 0)
+						request.clear();
+						while (1)
 						{
-							FD_CLR(i, &FDs);
-							close(i);
-							break;
+							bzero(buffer, BUFFER_SIZE);
+							bytesNum = read(i, buffer, BUFFER_SIZE);
+							if (bytesNum == 0)
+							{
+								FD_CLR(i, &FDs);
+								close(i);
+								break;
+							}
+							else if (bytesNum > 0)
+							{
+								std::cout << buffer << std::endl;
+								request.append(buffer);
+								std::cout << request << std::endl;
+							}
+							else if (bytesNum == -1)
+								break;
 						}
-						else if (bytesNum > 0)
+						if (bytesNum == -1)
 						{
-							std::cout << buffer << std::endl;
-							send(i, buffer, bytesNum, 0);
+							chunkRequest(request.length(), request);
+							send(i, request.c_str(), request.length(), 0);
 						}
 					}
 				}
@@ -149,5 +154,19 @@ void	TCPServer::runServer()
 	close(serverSD);
 }
 
-
+// __ Chunked Request __________________________________________________________
+// =============================================================================
+void	TCPServer::chunkRequest(int bytesNum, std::string request)
+{
+	(void) bytesNum;
+	size_t pos;
+	std::string dil = "\n\r\n";
+	pos = request.find(dil);
+	header = request.substr(0, pos);
+	std::cout << "pos : " << pos << "   " << request.length() << std::endl; 
+	if (header.length() < request.length())
+		body = request.substr(pos + 3, request.length());
+	std::cout << "header :" << std::endl << header << std::endl;
+	std::cout << "body :" << std::endl << body << std::endl;
+}
 

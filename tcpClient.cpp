@@ -6,7 +6,7 @@
 /*   By: ayakoubi <ayakoubi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/13 13:52:09 by ayakoubi          #+#    #+#             */
-/*   Updated: 2024/04/27 10:36:00 by ayakoubi         ###   ########.fr       */
+/*   Updated: 2024/04/28 10:50:01 by ayakoubi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,14 +20,14 @@ void	Write_Routine(int sock, char *buf)
 	while (1)
 	{
 		std::cin >> buf;
-		send(sock, buf, BUFFER_SIZE, 0);
+		send(sock, buf, strlen(buf), 0);
 		if (strlen(buf) == 1 && (buf[0] == 'q' || buf[0] == 'Q'))
 		{
 			close(sock);
 			std::cout << "client is disconnected" << std::endl;
 			return ;
 		}
-		memset(buf, 0, BUFFER_SIZE);
+		memset(buf, 0, strlen(buf));
 	}
 }
 

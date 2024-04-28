@@ -6,7 +6,7 @@
 /*   By: ayakoubi <ayakoubi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/28 19:37:27 by ayakoubi          #+#    #+#             */
-/*   Updated: 2024/04/27 11:20:16 by ayakoubi         ###   ########.fr       */
+/*   Updated: 2024/04/28 12:13:59 by ayakoubi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,7 @@
 
 #define TRUE 1
 #define FALSE 0
-#define BUFFER_SIZE 1024
+#define BUFFER_SIZE 50
 #define MAX_CONNECTION 10
 #define SERVERPORT  5555
 
@@ -36,11 +36,18 @@ class TCPServer
 		int serverSD;
 		fd_set FDs;
 		int fdMax;
+		std::string header;
+		std::string body;
 	public:
 		TCPServer();
 		~TCPServer();
-		int initSocket();
-		void runServer();
+		int		initSocket();
+		void	runServer();
+		void	chunkRequest(int bytesNum, std::string request);
+
+		std::string& getHeader() const;
+		std::string& getBody() const;
+		
 };
 
 
