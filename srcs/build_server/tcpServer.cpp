@@ -6,7 +6,7 @@
 /*   By: ayakoubi <ayakoubi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/15 13:37:56 by ayakoubi          #+#    #+#             */
-/*   Updated: 2024/04/28 14:40:31 by ayakoubi         ###   ########.fr       */
+/*   Updated: 2024/04/28 14:55:06 by ayakoubi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,7 +63,7 @@ int	TCPServer::initSocket()
 }
 
 bool setNonBlocking(int sockfd) {
-    int flags = fcntl(sockfd, O_NONBLOCK, 0);
+    int flags = fcntl(sockfd, F_GETFL, 0);
     if (flags == -1) {
         // Failed to get socket flags
         return false;
@@ -78,7 +78,8 @@ bool setNonBlocking(int sockfd) {
     return true;
 }
 
-
+// __ Run Server  ______________________________________________________________
+// =============================================================================
 void	TCPServer::runServer()
 {
 	fd_set FDsCopy;
@@ -131,11 +132,7 @@ void	TCPServer::runServer()
 								break;
 							}
 							else if (bytesNum > 0)
-							{
-								std::cout << buffer << std::endl;
 								request.append(buffer);
-								std::cout << request << std::endl;
-							}
 							else if (bytesNum == -1)
 								break;
 						}
@@ -160,12 +157,15 @@ void	TCPServer::chunkRequest(int bytesNum, std::string request)
 {
 	(void) bytesNum;
 	size_t pos;
+
 	std::string dil = "\n\r\n";
 	pos = request.find(dil);
 	header = request.substr(0, pos);
 	std::cout << "pos : " << pos << "   " << request.length() << std::endl; 
 	if (header.length() < request.length())
 		body = request.substr(pos + 3, request.length());
+	else
+		body.clear();
 	std::cout << "header :" << std::endl << header << std::endl;
 	std::cout << "body :" << std::endl << body << std::endl;
 }
