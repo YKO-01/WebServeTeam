@@ -6,7 +6,7 @@
 /*   By: ayakoubi <ayakoubi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/15 13:37:56 by ayakoubi          #+#    #+#             */
-/*   Updated: 2024/04/28 14:55:06 by ayakoubi         ###   ########.fr       */
+/*   Updated: 2024/04/29 11:16:43 by ayakoubi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -78,21 +78,73 @@ bool setNonBlocking(int sockfd) {
     return true;
 }
 
+// __ Accept Connection ________________________________________________________
+// =============================================================================
+bool TCPServer::acceptConnection(int serverSD)
+{
+	struct sockaddr_in conClientAdd;
+	int conSocket;
+	socklen_t clientAddLength = sizeof(conClientAdd);
+
+	memset(&conClientAdd, 0, sizeof(conClientAdd));
+	conSocket = accept(serverSD, (struct sockaddr*)&conClientAdd, &clientAddLength);
+	if (conSocket < 0)
+		return (false);
+	if (!setNonBlocking(conSocket))
+	{
+		close(conSocket);
+		return (false);
+	}
+	FD_SET(conSocket, &FDs);
+	if (fdMax < conSocket)
+		fdMax = conSocket;
+	std::cout << "client with id : " << conSocket << " is connected" << std::endl;
+	return (true);
+}	
+
+// __ Read Routine _____________________________________________________________
+// =============================================================================
+int		TCPServer::readRoutine(int sock, std::string& request)
+{
+	char buffer[BUFFER_SIZE];
+	int bytesNum;
+
+	bytesNum = 0;
+	while (1)
+	{
+		bzero(buffer, BUFFER_SIZE);
+		bytesNum = recv(sock, buffer, BUFFER_SIZE, 0);
+		if (bytesNum == 0)
+		{
+			FD_CLR(sock, &FDs);
+			close(sock);
+			break;
+		}
+		else if (bytesNum > 0)
+			request.append(buffer);
+		else if (bytesNum == -1)
+			break;
+	}
+	return (bytesNum);
+}
+
+void	TCPServer::sendRoutine(int sock, std::string& request)
+{
+	chunkRequest(request.length(), request);
+	send(sock, request.c_str(), request.length(), 0);
+}
+
+
 // __ Run Server  ______________________________________________________________
 // =============================================================================
 void	TCPServer::runServer()
 {
 	fd_set FDsCopy;
 	int fdNum;
-	char buffer[BUFFER_SIZE];
 	int	i;
-	int conSocket;
-	struct sockaddr_in conClientAdd;
 	int bytesNum = 0;
 	std::string request;
 
-	socklen_t clientAddLength = sizeof(conClientAdd);
-	memset(&conClientAdd, 0, sizeof(conClientAdd));
 	while (1)
 	{
 		FDsCopy = FDs;	
@@ -101,47 +153,17 @@ void	TCPServer::runServer()
 		{
 			for(i = 0; i < (fdMax + 1); i++)
 			{
-				if (i > 0 && FD_ISSET(i, &FDsCopy))
+				if (i > 0 && FD_ISSET(i, &FDsCopy) && i == serverSD)
 				{
-					if (i == serverSD)
-					{
-						conSocket = accept(serverSD, (struct sockaddr*)&conClientAdd, &clientAddLength);
-						if (conSocket < 0)
-							continue;
-						if (!setNonBlocking(conSocket))
-						{
-							close(conSocket);
-							continue;
-						}
-						FD_SET(conSocket, &FDs);
-						if (fdMax < conSocket)
-							fdMax = conSocket;
-						std::cout << "client with id : " << conSocket << " is connected" << std::endl;
-					}
-					else
-					{
-						request.clear();
-						while (1)
-						{
-							bzero(buffer, BUFFER_SIZE);
-							bytesNum = read(i, buffer, BUFFER_SIZE);
-							if (bytesNum == 0)
-							{
-								FD_CLR(i, &FDs);
-								close(i);
-								break;
-							}
-							else if (bytesNum > 0)
-								request.append(buffer);
-							else if (bytesNum == -1)
-								break;
-						}
-						if (bytesNum == -1)
-						{
-							chunkRequest(request.length(), request);
-							send(i, request.c_str(), request.length(), 0);
-						}
-					}
+					if (!acceptConnection(serverSD))
+						continue;
+				}
+				else if (FD_ISSET(i, &FDsCopy))
+				{
+					request.clear();
+					bytesNum = readRoutine(i, request);	
+					if (bytesNum == -1)
+						sendRoutine(i, request);
 				}
 			}
 		}
