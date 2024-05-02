@@ -6,7 +6,7 @@
 /*   By: ayakoubi <ayakoubi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/15 13:37:56 by ayakoubi          #+#    #+#             */
-/*   Updated: 2024/04/29 11:16:43 by ayakoubi         ###   ########.fr       */
+/*   Updated: 2024/05/02 11:17:39 by ayakoubi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,17 +25,33 @@ TCPServer::~TCPServer()
 	close(serverSD);
 }
 
+void	TCPServer::fillVectorConfigs()
+{
+	t_serverConfig config[3];
+	config[0].ip = "127.0.0.1";
+	config[0].port = 5555;
+	config[1].ip = "127.0.0.1";
+	config[1].port = 8888;
+	config[2].ip = "127.0.0.1";
+	config[2].port = 7777;
+	configs.push_back(config[0]);
+	configs.push_back(config[1]);
+	configs.push_back(config[2]);
+}	
 
 // __ Init Socket  _____________________________________________________________
 // =============================================================================
-int	TCPServer::initSocket()
+void	TCPServer::initSocket()
 {
+	size_t i = -1;
+	while (++i < configs.size())
+	{
 	// create a socket for the server
 	serverSD = socket(AF_INET, SOCK_STREAM, 0);
 	if (serverSD < 0)
 	{
 		std::cout << "failed to creation a socket" << std::endl;
-		return (false);
+		exit(1);
 	}
 	// set socket option
 	int	option = TRUE; 	
@@ -44,22 +60,23 @@ int	TCPServer::initSocket()
 	struct sockaddr_in serverAddress;
 	serverAddress.sin_family = AF_INET;
 	serverAddress.sin_addr.s_addr = INADDR_ANY;
-	serverAddress.sin_port = htons(SERVERPORT);
+	serverAddress.sin_port = htons(configs[i].port);
 	
 	if (bind(serverSD, (struct sockaddr*)&serverAddress, sizeof(serverAddress)) < 0)
 	{
 		std::cout << "binding failed" << std::endl;
-		return (false);
+		exit(1);
 	}
 	// listen to the client connection request
-	if (listen(serverSD, 1) < 0)
+	if (listen(serverSD, 10) < 0)
 	{
 		std::cout << "failed to listening" << std::endl;
-		return (false);
+		exit(1);
 	}
 	FD_SET(serverSD, &FDs);
     fdMax = serverSD;
-	return (serverSD);
+	serverSockets.push_back(serverSD);
+	}
 }
 
 bool setNonBlocking(int sockfd) {
@@ -134,6 +151,17 @@ void	TCPServer::sendRoutine(int sock, std::string& request)
 	send(sock, request.c_str(), request.length(), 0);
 }
 
+int		TCPServer::existSocket(int sock)
+{
+	size_t i;
+
+	for (i = 0; i < serverSockets.size(); i++)
+	{
+		if (sock == serverSockets[i])
+			return (serverSockets[i]);
+	}
+	return (0);
+}
 
 // __ Run Server  ______________________________________________________________
 // =============================================================================
@@ -141,7 +169,7 @@ void	TCPServer::runServer()
 {
 	fd_set FDsCopy;
 	int fdNum;
-	int	i;
+	int	i, j;
 	int bytesNum = 0;
 	std::string request;
 
@@ -153,9 +181,9 @@ void	TCPServer::runServer()
 		{
 			for(i = 0; i < (fdMax + 1); i++)
 			{
-				if (i > 0 && FD_ISSET(i, &FDsCopy) && i == serverSD)
+				if (i > 0 && FD_ISSET(i, &FDsCopy) && (j = existSocket(i)))
 				{
-					if (!acceptConnection(serverSD))
+					if (!acceptConnection(j))
 						continue;
 				}
 				else if (FD_ISSET(i, &FDsCopy))
@@ -170,7 +198,8 @@ void	TCPServer::runServer()
 	}
 	for (i = 0; i < fdMax + 1; i++)
 		close(i);
-	close(serverSD);
+	for (i = 0; i < serverSockets.size(); i++)
+		close(serverSockets[i]);
 }
 
 // __ Chunked Request __________________________________________________________
