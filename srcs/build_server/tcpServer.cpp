@@ -6,7 +6,7 @@
 /*   By: ayakoubi <ayakoubi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/15 13:37:56 by ayakoubi          #+#    #+#             */
-/*   Updated: 2024/05/02 11:17:39 by ayakoubi         ###   ########.fr       */
+/*   Updated: 2024/05/02 12:00:21 by ayakoubi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,44 +41,47 @@ void	TCPServer::fillVectorConfigs()
 
 // __ Init Socket  _____________________________________________________________
 // =============================================================================
-void	TCPServer::initSocket()
+bool	TCPServer::initSocket()
 {
 	size_t i = -1;
 	while (++i < configs.size())
 	{
-	// create a socket for the server
-	serverSD = socket(AF_INET, SOCK_STREAM, 0);
-	if (serverSD < 0)
-	{
-		std::cout << "failed to creation a socket" << std::endl;
-		exit(1);
+		// create a socket for the server
+		serverSD = socket(AF_INET, SOCK_STREAM, 0);
+		if (serverSD < 0)
+		{
+			std::cout << "failed to creation a socket" << std::endl;
+			return (false);
+		}
+		// set socket option
+		int	option = TRUE; 	
+		setsockopt(serverSD, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(option));  
+		// bind this socket to a specific port number
+		struct sockaddr_in serverAddress;
+		serverAddress.sin_family = AF_INET;
+		serverAddress.sin_addr.s_addr = INADDR_ANY;
+		serverAddress.sin_port = htons(configs[i].port);
+		
+		if (bind(serverSD, (struct sockaddr*)&serverAddress, sizeof(serverAddress)) < 0)
+		{
+			std::cout << "binding failed" << std::endl;
+			return (false);
+		}
+		// listen to the client connection request
+		if (listen(serverSD, 10) < 0)
+		{
+			std::cout << "failed to listening" << std::endl;
+			return (false);
+		}
+		FD_SET(serverSD, &FDs);
+    	fdMax = serverSD;
+		serverSockets.push_back(serverSD);
 	}
-	// set socket option
-	int	option = TRUE; 	
-	setsockopt(serverSD, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(option));  
-	// bind this socket to a specific port number
-	struct sockaddr_in serverAddress;
-	serverAddress.sin_family = AF_INET;
-	serverAddress.sin_addr.s_addr = INADDR_ANY;
-	serverAddress.sin_port = htons(configs[i].port);
-	
-	if (bind(serverSD, (struct sockaddr*)&serverAddress, sizeof(serverAddress)) < 0)
-	{
-		std::cout << "binding failed" << std::endl;
-		exit(1);
-	}
-	// listen to the client connection request
-	if (listen(serverSD, 10) < 0)
-	{
-		std::cout << "failed to listening" << std::endl;
-		exit(1);
-	}
-	FD_SET(serverSD, &FDs);
-    fdMax = serverSD;
-	serverSockets.push_back(serverSD);
-	}
+	return (true);
 }
 
+// __ Set Non Blocking _________________________________________________________
+// =============================================================================
 bool setNonBlocking(int sockfd) {
     int flags = fcntl(sockfd, F_GETFL, 0);
     if (flags == -1) {
@@ -145,12 +148,16 @@ int		TCPServer::readRoutine(int sock, std::string& request)
 	return (bytesNum);
 }
 
+// __ Send Routine _____________________________________________________________
+// =============================================================================
 void	TCPServer::sendRoutine(int sock, std::string& request)
 {
 	chunkRequest(request.length(), request);
 	send(sock, request.c_str(), request.length(), 0);
 }
 
+// __ Exist Socket _____________________________________________________________
+// =============================================================================
 int		TCPServer::existSocket(int sock)
 {
 	size_t i;
@@ -163,7 +170,7 @@ int		TCPServer::existSocket(int sock)
 	return (0);
 }
 
-// __ Run Server  ______________________________________________________________
+// __ run server  ______________________________________________________________
 // =============================================================================
 void	TCPServer::runServer()
 {

@@ -6,7 +6,7 @@
 #    By: ayakoubi <ayakoubi@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/03/06 12:38:17 by ayakoubi          #+#    #+#              #
-#    Updated: 2024/04/27 11:41:39 by ayakoubi         ###   ########.fr        #
+#    Updated: 2024/05/03 12:17:58 by ayakoubi         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -19,14 +19,19 @@ INC			=	incs
 OBJDIR		=	objs
 SRCDIR		=	srcs
 BUILDDIR	=	build_server
+PARSSDIR	=	parsingFile
 
 SRCMAIN		=	main
 SRCBUILD	:=	TCPServer initSocket
+SRCPARSS	:=	parsing
 
 OBJMAIN		:=	$(addprefix $(OBJDIR)/, $(addsuffix .o, $(SRCMAIN)))
 SRCMAIN		:=	$(addprefix $(SRCDIR)/, $(addsuffix .cpp, $(SRCMAIN)))
 OBJBUILD	:=	$(addprefix $(OBJDIR)/$(BUILDDIR)/, $(addsuffix .o, $(SRCBUILD)))
 SRCBUILD	:=	$(addprefix $(SRCDIR)/$(BUILDDIR)/, $(addsuffix .cpp, $(SRCBUILD)))
+OBJPARSS	:=	$(addprefix $(OBJDIR)/$(PARSSDIR)/, $(addsuffix .o, $(SRCPARSS)))
+SRCPARSS	:=	$(addprefix $(SRCDIR)/$(PARSSDIR)/, $(addsuffix .cpp, $(SRCPARSS)))
+
 # OBJBUILD	:=	$(addprefix $(OBJDIR)/, $(patsubst %.cpp,%.o,$(SRCBUILD)))
 
 
@@ -44,12 +49,13 @@ RESET = \033[0m
 $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
 	@mkdir -p $(OBJDIR)
 	@mkdir -p $(OBJDIR)/$(BUILDDIR)
+	@mkdir -p $(OBJDIR)/$(PARSSDIR)
 	@$(CPP) $(CPPFLAGS) -c $< -I $(INC) -o $@
 	@echo "$(GREEN) [OK] $(RESET) $(YELLOW) compile >>>> $< $(RESET)"
 
 all:	$(NAME)
 
-$(NAME) :	$(OBJBUILD) $(OBJMAIN)
+$(NAME) :	$(OBJBUILD) $(OBJMAIN) $(OBJPARSS)
 	@$(CPP) $(CPPFLAGS) $^ -I $(INC) -o $(NAME)
 	@@echo "$(GREEN) ------ Built success ------ $(RESET)"
 

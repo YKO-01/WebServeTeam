@@ -6,7 +6,7 @@
 /*   By: ayakoubi <ayakoubi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/28 19:37:27 by ayakoubi          #+#    #+#             */
-/*   Updated: 2024/05/02 11:15:46 by ayakoubi         ###   ########.fr       */
+/*   Updated: 2024/05/02 12:01:24 by ayakoubi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,7 +49,7 @@ class TCPServer
 	public:
 		TCPServer();
 		~TCPServer();
-		void	initSocket();
+		bool	initSocket();
 		void	runServer();
 		bool	acceptConnection(int serverSD);
 		int		readRoutine(int sock, std::string& request);
