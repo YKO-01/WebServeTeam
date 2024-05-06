@@ -6,7 +6,7 @@
 /*   By: ayakoubi <ayakoubi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/28 19:37:27 by ayakoubi          #+#    #+#             */
-/*   Updated: 2024/05/02 12:01:24 by ayakoubi         ###   ########.fr       */
+/*   Updated: 2024/05/04 13:02:15 by ayakoubi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,7 @@
 #include <fstream>
 #include <fcntl.h>
 #include <vector>
+#include "Config.hpp"
 
 #define TRUE 1
 #define FALSE 0
@@ -46,8 +47,10 @@ class TCPServer
 		std::string header;
 		std::string body;
 		std::vector<t_serverConfig> configs;
+		Config	config;
 	public:
 		TCPServer();
+		TCPServer(Config &configs);
 		~TCPServer();
 		bool	initSocket();
 		void	runServer();
@@ -58,6 +61,7 @@ class TCPServer
 
 		void	fillVectorConfigs();
 		int		existSocket(int sock);
+	//	void	setConfigs(Config &configs)
 
 		std::string& getHeader() const;
 		std::string& getBody() const;

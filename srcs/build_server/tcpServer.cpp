@@ -6,7 +6,7 @@
 /*   By: ayakoubi <ayakoubi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/15 13:37:56 by ayakoubi          #+#    #+#             */
-/*   Updated: 2024/05/02 12:00:21 by ayakoubi         ###   ########.fr       */
+/*   Updated: 2024/05/04 13:20:54 by ayakoubi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,11 @@
 // __ Constructor & Destructor _________________________________________________
 // =============================================================================
 TCPServer::TCPServer():serverSD(-1), fdMax(-1)
+{
+	FD_ZERO(&FDs);
+}
+
+TCPServer::TCPServer(Config &configs):serverSD(-1), fdMax(-1), config(configs)
 {
 	FD_ZERO(&FDs);
 }
@@ -126,13 +131,14 @@ bool TCPServer::acceptConnection(int serverSD)
 // =============================================================================
 int		TCPServer::readRoutine(int sock, std::string& request)
 {
+	request.clear();
 	char buffer[BUFFER_SIZE];
 	int bytesNum;
 
 	bytesNum = 0;
 	while (1)
 	{
-		bzero(buffer, BUFFER_SIZE);
+		memset(buffer, 0, BUFFER_SIZE);
 		bytesNum = recv(sock, buffer, BUFFER_SIZE, 0);
 		if (bytesNum == 0)
 		{
@@ -141,7 +147,10 @@ int		TCPServer::readRoutine(int sock, std::string& request)
 			break;
 		}
 		else if (bytesNum > 0)
+		{
+			std::cout << "===== buffer ======" << std::endl << buffer << std::endl;
 			request.append(buffer);
+		}
 		else if (bytesNum == -1)
 			break;
 	}
@@ -195,8 +204,9 @@ void	TCPServer::runServer()
 				}
 				else if (FD_ISSET(i, &FDsCopy))
 				{
-					request.clear();
-					bytesNum = readRoutine(i, request);	
+					//request.clear();
+					bytesNum = readRoutine(i, request);
+				//	std::cout << request << std::endl;
 					if (bytesNum == -1)
 						sendRoutine(i, request);
 				}

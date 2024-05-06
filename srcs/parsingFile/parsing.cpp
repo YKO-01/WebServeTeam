@@ -6,7 +6,7 @@
 /*   By: hkasbaou <hkasbaou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/26 14:07:13 by hkasbaou          #+#    #+#             */
-/*   Updated: 2024/05/03 12:43:07 by ayakoubi         ###   ########.fr       */
+/*   Updated: 2024/05/04 12:48:16 by ayakoubi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,7 @@
 #include <vector>
 #include <iostream>
 #include <sstream>
-#include "Server.hpp"
+#include "Config.hpp"
 
 void ft_exit(std::string str)
 {
@@ -49,7 +49,7 @@ std::string trim_tabs(const std::string& str) {
 
     return str.substr(start, end - start);
 }
-void Server::display_server()
+void Config::display_server()
 {
     std::cout << "host: " << host << std::endl;
     std::cout << "port: " << port << std::endl;
@@ -71,7 +71,7 @@ void Route::clear_route()
     file.clear();
     directory_listing = false;
 }
-void Server::clear_server()
+void Config::clear_server()
 {
     host.clear();
     port = -1;
@@ -81,7 +81,7 @@ void Server::clear_server()
     client_body_size.clear();
 }
 
-Server::Server(): port(-1), default_server(false),client_body_size("null")
+Config::Config(): port(-1), default_server(false),client_body_size("null")
 {}
 int get_count(std::string str,char token,int all)
 {
@@ -197,7 +197,7 @@ std::vector<std::string> split_stream(std::string str,char token)
 //{
     
 //}
-void host_pars(Server &sv,std::string line)
+void host_pars(Config &sv,std::string line)
 {
     if(!sv.host.empty())
         ft_exit("host::error agian host");
@@ -228,7 +228,7 @@ void host_pars(Server &sv,std::string line)
         sv.host = info;
     }
 }	
-void port_pars(Server &sv,std::string line)
+void port_pars(Config &sv,std::string line)
 {
     if(sv.port != -1)
         ft_exit("port:: error agian port");
@@ -245,7 +245,7 @@ void port_pars(Server &sv,std::string line)
     sv.port = std::stoi(resl[0]);
 }
 
-void server_name_pars(Server &sv,std::string line)
+void server_name_pars(Config &sv,std::string line)
 {
     std::string info;
     info = line.substr(line.find(":") + 1);
@@ -261,7 +261,7 @@ void server_name_pars(Server &sv,std::string line)
     for (size_t i = 0; i < resl.size(); i++)
         sv.server_names.push_back(resl[i]);
 }
-void client_body_size_pars(Server &sv,std::string line)
+void client_body_size_pars(Config &sv,std::string line)
 {
     std::string info;
     info = line.substr(line.find(":") + 1);
@@ -275,7 +275,7 @@ void client_body_size_pars(Server &sv,std::string line)
         ft_exit("client_body:: error range");
     sv.client_body_size = resl[0];
 }
-void error_pages_pars(Server &sv,std::vector<std::string> infos)
+void error_pages_pars(Config &sv,std::vector<std::string> infos)
 {	
     for (size_t i = 0; i < infos.size(); i++)
     {
@@ -296,7 +296,7 @@ void error_pages_pars(Server &sv,std::vector<std::string> infos)
         sv.error_pages[std::stoi(first_part)] = seceond_part;
     }
 }
-void router_pars(Server &sv,std::vector<std::string> infos)
+void router_pars(Config &sv,std::vector<std::string> infos)
 {
     Route route;
     std::vector<std::string> methods;
@@ -382,7 +382,7 @@ void router_pars(Server &sv,std::vector<std::string> infos)
     }
     sv.routes.push_back(route);
 }
-void check_info_exit(std::vector<Server> s)
+void check_info_exit(std::vector<Config> s)
 {
     for (size_t i = 0; i < s.size(); i++)
     {
@@ -398,9 +398,9 @@ void check_info_exit(std::vector<Server> s)
             ft_exit("router::error");
     }
 }
-std::vector<Server> insert_data_to_server(vecOfvecOfPair server_router_info, Server &serv)
+std::vector<Config> insert_data_to_server(vecOfvecOfPair server_router_info, Config &serv)
 {
-    std::vector<Server> servers;
+    std::vector<Config> servers;
     servers.resize(server_router_info.size());
     for (size_t i = 0; i < server_router_info.size(); i++)
     {
@@ -430,15 +430,13 @@ std::vector<Server> insert_data_to_server(vecOfvecOfPair server_router_info, Ser
 
     return servers;
 }
-/*
-int main(int ac,char **av)
+
+void	Config::parssConfigs(char **av)
 {
     std::string myText;
-    int index = 0;
-    std::ifstream MyReadFile(av[1]);
+	std::ifstream MyReadFile(av[1]);
     std::vector<std::string > vct;
     std::vector<std::vector<std::string> > big_vec;
-    size_t pos;
     std::pair<std::string, std::string> pair;
     bool inServerBlock = false;
     while (getline (MyReadFile, myText)) 
@@ -467,7 +465,6 @@ int main(int ac,char **av)
         big_vec.push_back(vct);
     MyReadFile.close();
     vecOfvecOfPair server_router_info = split_router(big_vec);
-    Server servers;
-    std::vector<Server> all_info;
-    all_info = insert_data_to_server(server_router_info, servers);
-}*/
+    Config servers;
+    allConfigs = insert_data_to_server(server_router_info, servers);
+}
