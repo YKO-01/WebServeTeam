@@ -72,6 +72,69 @@ std::string Route::get_directory()
 {
     return directory;
 }
+std::string Route::get_redirect()
+{
+    return redirect;
+}
+std::string Route::get_file()
+{
+    return file;
+}
+std::string Route::get_default_file()
+{
+    return default_file;
+}
+std::string Route::get_cgi_bin()
+{
+    return cgi_bin;
+}
+std::string Route::get_cgi_extension()
+{
+    return cgi_extension;
+}
+bool Route::get_directory_listing()
+{
+    return directory_listing;
+}
+// setters
+
+void Route::set_path(std::string path)
+{
+    this->path = path;
+}
+void Route::set_methods(std::string path)
+{
+    this->methods.push_back(path);
+}
+void Route::set_directory(std::string directory)
+{
+    this->directory = directory;
+}
+void Route::set_redirect(std::string redirect)
+{
+    this->redirect = redirect;
+}
+void Route::set_file(std::string file)
+{
+    this->file = file;
+}
+void Route::set_default_file(std::string default_file)
+{
+    this->default_file = default_file;
+}
+void Route::set_cgi_bin(std::string cgi_bin)
+{
+    this->cgi_bin = cgi_bin;
+}
+void Route::set_cgi_extension(std::string cgi_extension)
+{
+    this->cgi_extension = cgi_extension;
+}
+void Route::set_directory_listing(bool directory_listing)
+{
+    this->directory_listing = directory_listing;
+}
+// ------   end   --------  
 
 void Route::clear_route()
 {

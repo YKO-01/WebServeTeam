@@ -6,7 +6,7 @@
 /*   By: hkasbaou <hkasbaou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/26 14:07:13 by hkasbaou          #+#    #+#             */
-/*   Updated: 2024/05/03 19:40:36 by hkasbaou         ###   ########.fr       */
+/*   Updated: 2024/05/06 11:03:14 by hkasbaou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -264,7 +264,7 @@ void router_pars(Server &sv,std::vector<std::string> infos)
             // info = trim(infos[i].substr(infos[i].find(":") + 1));
             // if(info.size() == 0)
             //     ft_exit("router_default_file:: error nothing");
-            route.default_file = info;
+            route.set_default_file(info);
         }
         else if(infos[i].find("path:") != std::string::npos)
         {
@@ -278,7 +278,7 @@ void router_pars(Server &sv,std::vector<std::string> infos)
             //     ft_exit("router_path:: error \"");
             // if(info[0] != '\"' || info[info.size() - 1] != '\"')
             //     ft_exit("router_path:: error \"");
-            route.path = info;
+            route.set_path(info);
         }
         else if(infos[i].find("methods:") != std::string::npos)
         {
@@ -304,7 +304,7 @@ void router_pars(Server &sv,std::vector<std::string> infos)
                 ft_exit("router_methods:: error no methods");
             count_methods = 0;
             for (size_t i = 0; i < resl.size(); i++)
-                route.methods.push_back(resl[i]);
+                route.set_methods(resl[i]);
         }
         else if(infos[i].find("directory:") != std::string::npos)
         {
@@ -316,7 +316,7 @@ void router_pars(Server &sv,std::vector<std::string> infos)
             //     ft_exit("router_directory:: error 1 \"");
             // if(info[0] != '\"' || info[info.size() - 1] != '\"')
             //     ft_exit("router_directory:: error 2 \"");
-            route.directory = info;
+            route.set_directory(info);
         }
         else if(infos[i].find("redirect:") != std::string::npos)
         {
@@ -328,7 +328,7 @@ void router_pars(Server &sv,std::vector<std::string> infos)
             //     ft_exit("router_redirect:: error 1 \"");
             // if(info[0] != '\"' || info[info.size() - 1] != '\"')
             //     ft_exit("router_redirect:: error 2 \"");
-            route.redirect = info;
+            route.set_redirect(info);
         }
         else if(infos[i].find("directory_listing:") != std::string::npos)
         {
@@ -339,9 +339,9 @@ void router_pars(Server &sv,std::vector<std::string> infos)
             if(info != "on" && info != "off")
                 ft_exit("router_directory_listing:: error on/off");
             if(info == "on")
-                route.directory_listing = true;
+                route.set_directory_listing(true);
             else
-                route.directory_listing = false;
+                route.set_directory_listing(false);
         }
         else if(infos[i].find("cgi_bin:") != std::string::npos)
         {
@@ -349,7 +349,7 @@ void router_pars(Server &sv,std::vector<std::string> infos)
             // info = trim(infos[i].substr(infos[i].find(":") + 1));
             // if(info.size() == 0)
             //     ft_exit("router_cgi_bin:: error nothing");
-            route.cgi_bin = info;
+            route.set_cgi_bin(info);
         }
         else if(infos[i].find("cgi_extension:") != std::string::npos)
         {
@@ -357,7 +357,7 @@ void router_pars(Server &sv,std::vector<std::string> infos)
             // info = trim(infos[i].substr(infos[i].find(":") + 1));
             // if(info.size() == 0)
             //     ft_exit("router_cgi_extension:: error nothing");
-            route.cgi_extension = info;
+            route.set_cgi_extension(info);
         }
         else
             ft_exit("router::error not valid key");
@@ -422,16 +422,17 @@ void display_info(std::vector<Server> all_info)
         all_info[i].display_server();
         for (size_t j = 0; j < all_info[i].routes.size(); j++)
         {
-            std::cout << "path: " << all_info[i].routes[j].path << std::endl;
-            std::cout << "default_file: " << all_info[i].routes[j].default_file << std::endl;
+            std::cout << "path: " << all_info[i].routes[j].get_path() << std::endl;
+            std::cout << "default_file: " << all_info[i].routes[j].get_default_file() << std::endl;
             std::cout << "methods: " << std::endl;
-            for (size_t k = 0; k < all_info[i].routes[j].methods.size(); k++)
-                std::cout << "	" << all_info[i].routes[j].methods[k] << std::endl;
-            std::cout << "directory: " << all_info[i].routes[j].directory << std::endl;
-            std::cout << "redirect: " << all_info[i].routes[j].redirect << std::endl;
-            std::cout << "directory_listing: " << all_info[i].routes[j].directory_listing << std::endl;
-            std::cout << "cgi_bin: " << all_info[i].routes[j].cgi_bin << std::endl;
-            std::cout << "cgi_extension: " << all_info[i].routes[j].cgi_extension << std::endl;
+            std::vector<std::string> mth = all_info[i].routes[j].get_methods();
+            for (size_t k = 0; k < mth.size(); k++)
+                std::cout << "	" << mth[k] << std::endl;
+            std::cout << "directory: " << all_info[i].routes[j].get_directory() << std::endl;
+            std::cout << "redirect: " << all_info[i].routes[j].get_redirect() << std::endl;
+            std::cout << "directory_listing: " << all_info[i].routes[j].get_directory_listing() << std::endl;
+            std::cout << "cgi_bin: " << all_info[i].routes[j].get_cgi_bin() << std::endl;
+            std::cout << "cgi_extension: " << all_info[i].routes[j].get_cgi_extension() << std::endl;
         }
     }
 }
