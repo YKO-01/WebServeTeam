@@ -6,7 +6,7 @@
 /*   By: hkasbaou <hkasbaou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/26 14:07:13 by hkasbaou          #+#    #+#             */
-/*   Updated: 2024/04/29 10:07:00 by hkasbaou         ###   ########.fr       */
+/*   Updated: 2024/05/03 19:40:36 by hkasbaou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,41 +17,13 @@
 #include <iostream>
 #include <sstream>
 #include "Server.hpp"
-void ft_exit(std::string str)
-{
-    std::cout << str << std::endl;
-    exit(1);
-}
-int has_space_in_front(const std::string& str) {
-    if(str[0] == ' ')
-        return 1;
-    return 0;
-}
-std::string trim(const std::string& str) {
-    size_t start = 0;
-    size_t end = str.length();
 
-    while (start < end && std::isspace(str[start])) 
-        start++;
 
-    while (end > start && std::isspace(str[end - 1])) 
-        end--;
-
-    return str.substr(start, end - start);
-}
-std::string trim_tabs(const std::string& str) {
-    size_t start = 0;
-    size_t end = str.length();
-
-    while (start < end && str[start] == '\t') 
-        start++;
-
-    return str.substr(start, end - start);
-}
 void Server::display_server()
 {
     std::cout << "host: " << host << std::endl;
     std::cout << "port: " << port << std::endl;
+    std::cout << "root: " << root << std::endl;
     std::cout << "server_names: " << std::endl;
     for (size_t i = 0; i < server_names.size(); i++)
         std::cout << "	" <<server_names[i] << std::endl;
@@ -61,50 +33,11 @@ void Server::display_server()
         std::cout << it->first << " => " << it->second << std::endl;
     std::cout << "client_body_size: " << client_body_size << std::endl;
 }
-void Route::clear_route()
-{
-    path.clear();
-    methods.clear();
-    directory.clear();
-    redirect.clear();
-    file.clear();
-    directory_listing = false;
-}
-void Server::clear_server()
-{
-    host.clear();
-    port = -1;
-    server_names.clear();
-    default_server = false;
-    error_pages.clear();
-    client_body_size.clear();
-}
+
 
 Server::Server(): port(-1), default_server(false),client_body_size("null")
 {}
-int get_count(std::string str,char token,int all)
-{
-    int tabcount = 0;
-    if(all == 0)
-        for (size_t l = 0; str[l] != '\0' && str[l] == '\t'; l++) 
-            tabcount++;
-    else if(all == 1)
-        {for (size_t l = 0; str[l] != '\0'; l++) 
-            if(str[l] == token)
-                tabcount++;}
-    else
-    {
-        bool insideQuotes = false;
-        for (size_t l = 0; str[l] != '\0'; l++)
-        {
-            if (str[l] == '"') 
-                insideQuotes = !insideQuotes;
-            else if (str[l] == ':' && !insideQuotes) 
-                tabcount++;
-        }
-    }
-    return tabcount;
-}
+
 void display(std::pair<std::string, std::vector<std::string> > pair)
 {
     std::cout << "first:" <<  pair.first << std::endl;
@@ -132,7 +65,7 @@ vecOfvecOfPair split_router(std::vector<std::vector<std::string> > big_vec)
         {
             int tabcount = 0;
             pair.first = big_vec[i][j];
-            if (big_vec[i][j].find("router") != std::string::npos)
+            if (big_vec[i][j].find("- router") != std::string::npos)
             {
                 j++;
                 tabcount = get_count(big_vec[i][j],'\t',0);
@@ -150,7 +83,7 @@ vecOfvecOfPair split_router(std::vector<std::vector<std::string> > big_vec)
                     pair.second.push_back(big_vec[i][j++]);
                 j--;
             }
-            if (big_vec[i][j].find("error_pages") != std::string::npos)
+            if (big_vec[i][j].find("- error_pages") != std::string::npos)
             {
                 j++;
                 tabcount = get_count(big_vec[i][j],'\t',0);
@@ -176,29 +109,15 @@ vecOfvecOfPair split_router(std::vector<std::vector<std::string> > big_vec)
     }
     return routerInfoSegments;
 }
-bool isAllWhitespace(const std::string& str) {
-    for (std::string::const_iterator it = str.begin(); it != str.end(); ++it) 
-        if (!isspace(*it)) 
-            return false;
-    return true;
-}
-std::vector<std::string> split_stream(std::string str,char token)
-{
-    std::istringstream iss(str);
-    std::vector<std::string> results;
-    std::string temp;
-    while (std::getline(iss, temp, token)) 
-        if (!temp.empty()) 
-            results.push_back(trim(temp));
-    return results;
-}
-void check_errors(std::string str,std::string error)
-{
+
+
+// void check_errors(std::string str,std::string error)
+// {
     
-}
+// }
 void host_pars(Server &sv,std::string line)
 {
-    if(!sv.host.empty())
+    if(!sv.get_host().empty())
         ft_exit("host::error agian host");
     std::string info;
     info = line.substr(line.find(":") + 1);
@@ -207,7 +126,7 @@ void host_pars(Server &sv,std::string line)
     if(resl.size() == 0 || resl.size() > 1)
         ft_exit("host::error ktar mn 1");
     if(resl[0].find("localhost") != std::string::npos)
-        sv.host = resl[0];
+        sv.set_host(resl[0]);
     else
     {
         if(resl[0].find_first_not_of("0123456789.") != std::string::npos)
@@ -224,12 +143,12 @@ void host_pars(Server &sv,std::string line)
             if(std::stoi(resl[i]) < 0 || std::stoi(resl[i]) > 255)
                 ft_exit("host::error range");
         }
-        sv.host = info;
+        sv.set_host(info);
     }
 }	
 void port_pars(Server &sv,std::string line)
 {
-    if(sv.port != -1)
+    if(sv.get_port() != -1)
         ft_exit("port:: error agian port");
     std::string info;
     info = line.substr(line.find(":") + 1);
@@ -241,7 +160,7 @@ void port_pars(Server &sv,std::string line)
         ft_exit("port:: error alphabetic");
     if(std::stoi(resl[0]) < 0 || std::stoi(resl[0]) > 65535)
         ft_exit("port:: error range");
-    sv.port = std::stoi(resl[0]);
+    sv.set_port(std::stoi(resl[0]));
 }
 void root_pars(Server &sv,std::string line)
 {
@@ -249,6 +168,7 @@ void root_pars(Server &sv,std::string line)
     info = line.substr(line.find(":") + 1);
     std::vector<std::string> resl;
     resl = split_stream(info,' ');
+    std::cout << "size::" << resl.size() << std::endl;
     if(resl.size() == 0 || resl.size() > 1)
         ft_exit("root:: error ktar mn 1");
     if(resl[0].find_first_not_of("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_-./\"") != std::string::npos)
@@ -257,12 +177,13 @@ void root_pars(Server &sv,std::string line)
         ft_exit("root:: error \"");
     if(resl[0][0] != '\"' || resl[0][resl[0].size() - 1] != '\"')
         ft_exit("root:: error \"");
-    sv.root = resl[0];
+    sv.set_root(resl[0]);
 
 }
 void server_name_pars(Server &sv,std::string line)
 {
     std::string info;
+    std::vector<std::string> server_names1;
     info = line.substr(line.find(":") + 1);
     std::vector<std::string> resl;
     resl = split_stream(info,',');
@@ -274,7 +195,8 @@ void server_name_pars(Server &sv,std::string line)
         if(resl[i].find_first_not_of("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_-.") != std::string::npos)
             ft_exit("server_name:: error alphabetic");
     for (size_t i = 0; i < resl.size(); i++)
-        sv.server_names.push_back(resl[i]);
+        server_names1.push_back(resl[i]);
+    sv.set_server_names(server_names1);
 }
 void client_body_size_pars(Server &sv,std::string line)
 {
@@ -288,7 +210,7 @@ void client_body_size_pars(Server &sv,std::string line)
         ft_exit("client_body:: error alphabetic");
     if(std::stoi(resl[0]) < 0)
         ft_exit("client_body:: error range");
-    sv.client_body_size = resl[0];
+    sv.set_client_body_size(resl[0]);
 }
 void error_pages_pars(Server &sv,std::vector<std::string> infos)
 {	
@@ -308,8 +230,23 @@ void error_pages_pars(Server &sv,std::vector<std::string> infos)
             ft_exit("error_pages:: error \"");
         if(seceond_part[0] != '\"' || seceond_part[seceond_part.size() - 1] != '\"')
             ft_exit("error_pages:: error \"");
-        sv.error_pages[std::stoi(first_part)] = seceond_part;
+        sv.set_error_pages(std::stoi(first_part),seceond_part);
     }
+}
+std::string trim_and_check_exist(std::string data,std::string error,int check_cots)
+{
+    std::string info;
+    info = trim(data.substr(data.find(":") + 1));
+    if(info.size() == 0)
+        ft_exit(error + "nothing");
+    if(check_cots == 1)
+    {
+        if(get_count(info,'\"',1) != 2)
+            ft_exit(error + "\"");
+        if(info[0] != '\"' || info[info.size() - 1] != '\"')
+            ft_exit(error + "\"");
+    }
+    return info;
 }
 void router_pars(Server &sv,std::vector<std::string> infos)
 {
@@ -318,19 +255,29 @@ void router_pars(Server &sv,std::vector<std::string> infos)
     methods.push_back("GET");
     methods.push_back("POST");
     methods.push_back("DELETE");
-
+    route.clear_route();
     for (size_t i = 0; i < infos.size(); i++)
     {
-        if(infos[i].find("path:") != std::string::npos)
+        if(infos[i].find("default_file:") != std::string::npos)
         {
-            std::string info;
-            info = trim(infos[i].substr(infos[i].find(":") + 1));
+            std::string info = trim_and_check_exist(infos[i],"router_default_file:: error ",0);
+            // info = trim(infos[i].substr(infos[i].find(":") + 1));
+            // if(info.size() == 0)
+            //     ft_exit("router_default_file:: error nothing");
+            route.default_file = info;
+        }
+        else if(infos[i].find("path:") != std::string::npos)
+        {
+            std::string info = trim_and_check_exist(infos[i],"router_path:: error ",1);
+            // info = trim(infos[i].substr(infos[i].find(":") + 1));
+            // if(info.size() == 0)
+            //     ft_exit("router_path:: error nothing");
             if(info.find_first_not_of("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_-./\"") != std::string::npos)
                 ft_exit("router_path:: error alphabetic");
-            if(get_count(info,'\"',1) != 2)
-                ft_exit("router_path:: error \"");
-            if(info[0] != '\"' || info[info.size() - 1] != '\"')
-                ft_exit("router_path:: error \"");
+            // if(get_count(info,'\"',1) != 2)
+            //     ft_exit("router_path:: error \"");
+            // if(info[0] != '\"' || info[info.size() - 1] != '\"')
+            //     ft_exit("router_path:: error \"");
             route.path = info;
         }
         else if(infos[i].find("methods:") != std::string::npos)
@@ -340,6 +287,8 @@ void router_pars(Server &sv,std::vector<std::string> infos)
             line = trim(infos[i].substr(infos[i].find(":") + 1));
             std::vector<std::string> resl;
             resl = split_stream(line,',');
+            if(resl.size() == 0)
+                ft_exit("router_methods:: error nothing");
             for (size_t i = 0; i < resl.size(); i++)
             {
                 if(resl[i].find("GET") != std::string::npos)
@@ -354,43 +303,61 @@ void router_pars(Server &sv,std::vector<std::string> infos)
             if(resl.size() != count_methods)
                 ft_exit("router_methods:: error no methods");
             count_methods = 0;
+            for (size_t i = 0; i < resl.size(); i++)
+                route.methods.push_back(resl[i]);
         }
         else if(infos[i].find("directory:") != std::string::npos)
         {
-            std::string info;
-            info = trim(infos[i].substr(infos[i].find(":") + 1));
+            std::string info = trim_and_check_exist(infos[i],"router_directory:: error ",1);
+            // info = trim(infos[i].substr(infos[i].find(":") + 1));
             if(info.find_first_not_of("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_-./\"") != std::string::npos)
                 ft_exit("router_directory:: error alphabetic");
-            if(get_count(info,'\"',1) != 2)
-                ft_exit("router_directory:: error 1 \"");
-            if(info[0] != '\"' || info[info.size() - 1] != '\"')
-                ft_exit("router_directory:: error 2 \"");
+            // if(get_count(info,'\"',1) != 2)
+            //     ft_exit("router_directory:: error 1 \"");
+            // if(info[0] != '\"' || info[info.size() - 1] != '\"')
+            //     ft_exit("router_directory:: error 2 \"");
             route.directory = info;
         }
         else if(infos[i].find("redirect:") != std::string::npos)
         {
-            std::string info;
-            info = trim(infos[i].substr(infos[i].find(":") + 1));
+            std::string info = trim_and_check_exist(infos[i],"router_redirect:: error ",1);
+            // info = trim(infos[i].substr(infos[i].find(":") + 1));
             if(info.find_first_not_of("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ:_-./\"") != std::string::npos)
                 ft_exit("router_redirect:: error alphabetic");
-            if(get_count(info,'\"',1) != 2)
-                ft_exit("router_redirect:: error 1 \"");
-            if(info[0] != '\"' || info[info.size() - 1] != '\"')
-                ft_exit("router_redirect:: error 2 \"");
+            // if(get_count(info,'\"',1) != 2)
+            //     ft_exit("router_redirect:: error 1 \"");
+            // if(info[0] != '\"' || info[info.size() - 1] != '\"')
+            //     ft_exit("router_redirect:: error 2 \"");
             route.redirect = info;
         }
         else if(infos[i].find("directory_listing:") != std::string::npos)
         {
-            std::string info;
-            info = trim(infos[i].substr(infos[i].find(":") + 1));
-            if(info.find_first_not_of("abcdefjhigklmnopqrstuvwxyz") != std::string::npos)
-                ft_exit("router_directory_listing:: error alphabetic");
+            std::string info = trim_and_check_exist(infos[i],"router_directory_listing:: error ",0);
+            // info = trim(infos[i].substr(infos[i].find(":") + 1));
+            // if(info.find_first_not_of("abcdefjhigklmnopqrstuvwxyz") != std::string::npos)
+            //     ft_exit("router_directory_listing:: error alphabetic");
             if(info != "on" && info != "off")
                 ft_exit("router_directory_listing:: error on/off");
             if(info == "on")
                 route.directory_listing = true;
             else
                 route.directory_listing = false;
+        }
+        else if(infos[i].find("cgi_bin:") != std::string::npos)
+        {
+            std::string info = trim_and_check_exist(infos[i],"router_cgi_bin:: error ",0);
+            // info = trim(infos[i].substr(infos[i].find(":") + 1));
+            // if(info.size() == 0)
+            //     ft_exit("router_cgi_bin:: error nothing");
+            route.cgi_bin = info;
+        }
+        else if(infos[i].find("cgi_extension:") != std::string::npos)
+        {
+            std::string info = trim_and_check_exist(infos[i],"router_cgi_extension:: error ",0);
+            // info = trim(infos[i].substr(infos[i].find(":") + 1));
+            // if(info.size() == 0)
+            //     ft_exit("router_cgi_extension:: error nothing");
+            route.cgi_extension = info;
         }
         else
             ft_exit("router::error not valid key");
@@ -401,13 +368,13 @@ void check_info_exit(std::vector<Server> s)
 {
     for (size_t i = 0; i < s.size(); i++)
     {
-        if(s[i].host.empty())
+        if(s[i].get_host().empty())
             ft_exit("Error::no host");
-        if(s[i].port == -1)
+        if(s[i].get_port() == -1)
             ft_exit("Error::no port");
-        if(s[i].server_names.size() == 0)
+        if(s[i].get_server_names().size() == 0)
             ft_exit("server_names::error");
-        if(s[i].client_body_size == "null")
+        if(s[i].get_client_body_size() == "null")
             ft_exit("client_body_size::error");
         if(s[i].routes.size() == 0)
             ft_exit("router::error");
@@ -432,7 +399,7 @@ std::vector<Server> insert_data_to_server(vecOfvecOfPair server_router_info, Ser
             else if(server_router_info[i][j].first.find("root") != std::string::npos)
                 root_pars(serv, server_router_info[i][j].first);
             else if(server_router_info[i][j].first.find("default_server") != std::string::npos)
-                serv.default_server = true;
+                serv.set_default_server(true);
             else if(server_router_info[i][j].first.find("error_pages") != std::string::npos)
                 error_pages_pars(serv, server_router_info[i][j].second);
             else if(server_router_info[i][j].first.find("router") != std::string::npos)
@@ -447,6 +414,27 @@ std::vector<Server> insert_data_to_server(vecOfvecOfPair server_router_info, Ser
 
     return servers;
 }
+void display_info(std::vector<Server> all_info)
+{
+    for (size_t i = 0; i < all_info.size(); i++)
+    {
+        std::cout << "-------------------------------" << std::endl;
+        all_info[i].display_server();
+        for (size_t j = 0; j < all_info[i].routes.size(); j++)
+        {
+            std::cout << "path: " << all_info[i].routes[j].path << std::endl;
+            std::cout << "default_file: " << all_info[i].routes[j].default_file << std::endl;
+            std::cout << "methods: " << std::endl;
+            for (size_t k = 0; k < all_info[i].routes[j].methods.size(); k++)
+                std::cout << "	" << all_info[i].routes[j].methods[k] << std::endl;
+            std::cout << "directory: " << all_info[i].routes[j].directory << std::endl;
+            std::cout << "redirect: " << all_info[i].routes[j].redirect << std::endl;
+            std::cout << "directory_listing: " << all_info[i].routes[j].directory_listing << std::endl;
+            std::cout << "cgi_bin: " << all_info[i].routes[j].cgi_bin << std::endl;
+            std::cout << "cgi_extension: " << all_info[i].routes[j].cgi_extension << std::endl;
+        }
+    }
+}
 int main(int ac,char **av)
 {
     std::string myText;
@@ -459,7 +447,7 @@ int main(int ac,char **av)
     bool inServerBlock = false;
     while (getline (MyReadFile, myText)) 
     {
-        if(myText.empty() || isAllWhitespace(myText)) 
+        if(myText.empty() || isAllWhitespace(myText) || trim(myText).at(0) == '#')
         	continue;
         if (myText.find("- server") != std::string::npos) 
         {
@@ -486,4 +474,5 @@ int main(int ac,char **av)
     Server servers;
     std::vector<Server> all_info;
     all_info = insert_data_to_server(server_router_info, servers);
+    display_info(all_info);
 }
