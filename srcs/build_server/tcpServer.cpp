@@ -6,7 +6,7 @@
 /*   By: ayakoubi <ayakoubi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/15 13:37:56 by ayakoubi          #+#    #+#             */
-/*   Updated: 2024/05/04 13:20:54 by ayakoubi         ###   ########.fr       */
+/*   Updated: 2024/05/08 14:01:47 by ayakoubi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,7 @@ TCPServer::TCPServer():serverSD(-1), fdMax(-1)
 	FD_ZERO(&FDs);
 }
 
-TCPServer::TCPServer(Config &configs):serverSD(-1), fdMax(-1), config(configs)
+TCPServer::TCPServer(Config &configs):serverSD(-1), fdMax(-1), configs(configs.get_allInfo())
 {
 	FD_ZERO(&FDs);
 }
@@ -30,7 +30,7 @@ TCPServer::~TCPServer()
 	close(serverSD);
 }
 
-void	TCPServer::fillVectorConfigs()
+/*void	TCPServer::fillVectorConfigs()
 {
 	t_serverConfig config[3];
 	config[0].ip = "127.0.0.1";
@@ -42,7 +42,7 @@ void	TCPServer::fillVectorConfigs()
 	configs.push_back(config[0]);
 	configs.push_back(config[1]);
 	configs.push_back(config[2]);
-}	
+}*/	
 
 // __ Init Socket  _____________________________________________________________
 // =============================================================================
@@ -65,7 +65,8 @@ bool	TCPServer::initSocket()
 		struct sockaddr_in serverAddress;
 		serverAddress.sin_family = AF_INET;
 		serverAddress.sin_addr.s_addr = INADDR_ANY;
-		serverAddress.sin_port = htons(configs[i].port);
+	//	std::cout << configs[i].get_port() << std::endl;
+		serverAddress.sin_port = htons(configs[i].get_port());
 		
 		if (bind(serverSD, (struct sockaddr*)&serverAddress, sizeof(serverAddress)) < 0)
 		{
@@ -148,7 +149,7 @@ int		TCPServer::readRoutine(int sock, std::string& request)
 		}
 		else if (bytesNum > 0)
 		{
-			std::cout << "===== buffer ======" << std::endl << buffer << std::endl;
+			buffer[bytesNum] = 0;
 			request.append(buffer);
 		}
 		else if (bytesNum == -1)
@@ -206,7 +207,6 @@ void	TCPServer::runServer()
 				{
 					//request.clear();
 					bytesNum = readRoutine(i, request);
-				//	std::cout << request << std::endl;
 					if (bytesNum == -1)
 						sendRoutine(i, request);
 				}

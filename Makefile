@@ -6,7 +6,7 @@
 #    By: ayakoubi <ayakoubi@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/03/06 12:38:17 by ayakoubi          #+#    #+#              #
-#    Updated: 2024/05/03 12:17:58 by ayakoubi         ###   ########.fr        #
+#    Updated: 2024/05/06 11:56:25 by ayakoubi         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -23,7 +23,7 @@ PARSSDIR	=	parsingFile
 
 SRCMAIN		=	main
 SRCBUILD	:=	TCPServer initSocket
-SRCPARSS	:=	parsing
+SRCPARSS	:=	parsing utils geter_setter
 
 OBJMAIN		:=	$(addprefix $(OBJDIR)/, $(addsuffix .o, $(SRCMAIN)))
 SRCMAIN		:=	$(addprefix $(SRCDIR)/, $(addsuffix .cpp, $(SRCMAIN)))

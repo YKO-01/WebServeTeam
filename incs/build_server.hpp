@@ -6,7 +6,7 @@
 /*   By: ayakoubi <ayakoubi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/28 19:37:27 by ayakoubi          #+#    #+#             */
-/*   Updated: 2024/05/04 13:02:15 by ayakoubi         ###   ########.fr       */
+/*   Updated: 2024/05/08 13:59:42 by ayakoubi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,8 +46,7 @@ class TCPServer
 		int fdMax;
 		std::string header;
 		std::string body;
-		std::vector<t_serverConfig> configs;
-		Config	config;
+		std::vector<Config> configs;
 	public:
 		TCPServer();
 		TCPServer(Config &configs);
