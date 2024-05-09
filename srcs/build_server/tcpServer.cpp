@@ -6,7 +6,7 @@
 /*   By: ayakoubi <ayakoubi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/15 13:37:56 by ayakoubi          #+#    #+#             */
-/*   Updated: 2024/05/08 14:01:47 by ayakoubi         ###   ########.fr       */
+/*   Updated: 2024/05/09 14:22:25 by ayakoubi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -128,6 +128,14 @@ bool TCPServer::acceptConnection(int serverSD)
 	return (true);
 }	
 
+char	*joinRequest(char *old, char *buffer)
+{
+	char *request = new char[strlen(old) + strlen(buffer)];
+
+	request = strcat(old, buffer);
+	return request;
+}
+
 // __ Read Routine _____________________________________________________________
 // =============================================================================
 int		TCPServer::readRoutine(int sock, std::string& request)
@@ -140,19 +148,22 @@ int		TCPServer::readRoutine(int sock, std::string& request)
 	while (1)
 	{
 		memset(buffer, 0, BUFFER_SIZE);
-		bytesNum = recv(sock, buffer, BUFFER_SIZE, 0);
-		if (bytesNum == 0)
+		bytesNum = recv(sock, buffer, BUFFER_SIZE - 1, 0);
+		if (bytesNum < 0)
 		{
 			FD_CLR(sock, &FDs);
 			close(sock);
 			break;
 		}
+		else if (bytesNum == 0)
+			break;
 		else if (bytesNum > 0)
 		{
 			buffer[bytesNum] = 0;
+		//	std::cout << buffer << std::endl;
 			request.append(buffer);
 		}
-		else if (bytesNum == -1)
+		if (bytesNum < BUFFER_SIZE - 1)
 			break;
 	}
 	return (bytesNum);
@@ -162,8 +173,15 @@ int		TCPServer::readRoutine(int sock, std::string& request)
 // =============================================================================
 void	TCPServer::sendRoutine(int sock, std::string& request)
 {
-	chunkRequest(request.length(), request);
+	chunkRequest(request);
+	std::cout << " =========== " << std::endl << request << std::endl;
 	send(sock, request.c_str(), request.length(), 0);
+	/*size_t i = -1;
+	while (++i < request.size())
+	{
+		std::cout << request[i] << std::endl;
+		send(sock, request[i], strlen(request[i]), 0);
+	}*/
 }
 
 // __ Exist Socket _____________________________________________________________
@@ -206,8 +224,9 @@ void	TCPServer::runServer()
 				else if (FD_ISSET(i, &FDsCopy))
 				{
 					//request.clear();
+					bytesNum = 0;
 					bytesNum = readRoutine(i, request);
-					if (bytesNum == -1)
+					if (bytesNum > 0)
 						sendRoutine(i, request);
 				}
 			}
@@ -215,15 +234,14 @@ void	TCPServer::runServer()
 	}
 	for (i = 0; i < fdMax + 1; i++)
 		close(i);
-	for (i = 0; i < serverSockets.size(); i++)
+	for (i = 0; i < static_cast<int>(serverSockets.size()); i++)
 		close(serverSockets[i]);
 }
 
 // __ Chunked Request __________________________________________________________
 // =============================================================================
-void	TCPServer::chunkRequest(int bytesNum, std::string request)
+void	TCPServer::chunkRequest(std::string request)
 {
-	(void) bytesNum;
 	size_t pos;
 
 	std::string dil = "\n\r\n";
