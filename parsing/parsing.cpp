@@ -6,7 +6,7 @@
 /*   By: hkasbaou <hkasbaou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/26 14:07:13 by hkasbaou          #+#    #+#             */
-/*   Updated: 2024/05/06 11:03:14 by hkasbaou         ###   ########.fr       */
+/*   Updated: 2024/05/06 13:12:42 by hkasbaou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -300,7 +300,7 @@ void router_pars(Server &sv,std::vector<std::string> infos)
                 else
                     ft_exit("router_methods:: error alphabetic");
             }
-            if(resl.size() != count_methods)
+            if((int)resl.size() != count_methods)
                 ft_exit("router_methods:: error no methods");
             count_methods = 0;
             for (size_t i = 0; i < resl.size(); i++)
@@ -439,11 +439,12 @@ void display_info(std::vector<Server> all_info)
 int main(int ac,char **av)
 {
     std::string myText;
-    int index = 0;
+    // int index = 0;
+    (void)ac;
     std::ifstream MyReadFile(av[1]);
     std::vector<std::string > vct;
     std::vector<std::vector<std::string> > big_vec;
-    size_t pos;
+    // size_t pos;
     std::pair<std::string, std::string> pair;
     bool inServerBlock = false;
     while (getline (MyReadFile, myText)) 
