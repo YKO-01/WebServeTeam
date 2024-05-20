@@ -6,7 +6,7 @@
 /*   By: hkasbaou <hkasbaou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/18 14:32:35 by hkasbaou          #+#    #+#             */
-/*   Updated: 2024/05/19 18:07:17 by hkasbaou         ###   ########.fr       */
+/*   Updated: 2024/05/18 15:45:06 by hkasbaou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -108,10 +108,6 @@ std::string Route::get_default_file()
 {
     return default_file;
 }
-bool Route::get_useCGI()
-{
-    return useCGI;
-}
 // std::string Route::get_cgi_bin()
 // {
 //     return cgi_bin;
@@ -120,6 +116,10 @@ bool Route::get_useCGI()
 // {
 //     return cgi_extension;
 // }
+bool Route::get_useCGI()
+{
+    return useCGI;
+}
 bool Route::get_directory_listing()
 {
     return directory_listing;
