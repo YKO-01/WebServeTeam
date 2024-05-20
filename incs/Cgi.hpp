@@ -1,30 +1,14 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Route.hpp                                          :+:      :+:    :+:   */
+/*   Cgi.hpp                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: hkasbaou <hkasbaou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/03/26 14:07:10 by hkasbaou          #+#    #+#             */
-/*   Updated: 2024/03/26 14:07:11 by hkasbaou         ###   ########.fr       */
+/*   Created: 2024/05/20 10:29:56 by hkasbaou          #+#    #+#             */
+/*   Updated: 2024/05/20 10:43:06 by hkasbaou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <iostream>
-#include <vector>
-#include <map>
-class Route {
-private:
-    
+#pragma once
 
-public:
-    std::string path;
-    std::vector<std::string> methods;
-    std::string directory;
-    std::string redirect;
-    std::string file; 
-    bool directory_listing;
-    
-    void clear_route();
-    // Add getters and setters as needed
-};

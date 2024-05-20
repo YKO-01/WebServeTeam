@@ -6,7 +6,7 @@
 /*   By: hkasbaou <hkasbaou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/26 14:07:22 by hkasbaou          #+#    #+#             */
-/*   Updated: 2024/05/18 14:50:41 by hkasbaou         ###   ########.fr       */
+/*   Updated: 2024/05/20 10:44:24 by hkasbaou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,14 @@
 #include <iostream>
 #include <sstream>
 #include "Route.hpp"
+
+enum cgi_extention
+{
+    php,
+    sh,
+    cpp,
+    python,
+};
 
 typedef std::vector<std::vector<std::pair<std::string, std::vector<std::string> > > > vecOfvecOfPair;
 class Config {
