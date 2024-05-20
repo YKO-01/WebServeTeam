@@ -6,11 +6,13 @@
 /*   By: hkasbaou <hkasbaou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/18 14:32:35 by hkasbaou          #+#    #+#             */
-/*   Updated: 2024/05/18 15:45:06 by hkasbaou         ###   ########.fr       */
+/*   Updated: 2024/05/20 10:25:36 by hkasbaou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "Config.hpp"
+#include "../../incs/Config.hpp"
+// #include "../../incs/Route.hpp"
+
 // --------  config  --------
 // getters
 std::string Config::get_host()

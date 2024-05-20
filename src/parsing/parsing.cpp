@@ -6,7 +6,7 @@
 /*   By: hkasbaou <hkasbaou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/26 14:07:13 by hkasbaou          #+#    #+#             */
-/*   Updated: 2024/05/18 15:43:46 by hkasbaou         ###   ########.fr       */
+/*   Updated: 2024/05/20 10:25:42 by hkasbaou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,7 @@
 #include <vector>
 #include <iostream>
 #include <sstream>
-#include "Config.hpp"
+#include "../../incs/Config.hpp"
 
 
 void Config::display_server()

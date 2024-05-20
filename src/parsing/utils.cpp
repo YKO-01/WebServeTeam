@@ -6,11 +6,11 @@
 /*   By: hkasbaou <hkasbaou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/18 14:32:31 by hkasbaou          #+#    #+#             */
-/*   Updated: 2024/05/18 14:32:32 by hkasbaou         ###   ########.fr       */
+/*   Updated: 2024/05/20 10:25:59 by hkasbaou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "Config.hpp"
+#include "../../incs/Config.hpp"
 
 void ft_exit(std::string str)
 {
