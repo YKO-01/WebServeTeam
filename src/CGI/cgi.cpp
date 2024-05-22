@@ -84,6 +84,7 @@ std::string CGI_EXEC(std::string full_path,char **env)
         close(pipefd[0]);
         int status;
         waitpid(pid, &status, 0); 
+        std::cout << "status::" << status << std::endl;
         std::string outputStr(output.begin(), output.end());
         // std::cout << "Output:\n" << outputStr << std::endl;
     }

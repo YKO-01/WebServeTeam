@@ -6,7 +6,7 @@
 /*   By: hkasbaou <hkasbaou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/26 14:07:13 by hkasbaou          #+#    #+#             */
-/*   Updated: 2024/05/20 10:25:42 by hkasbaou         ###   ########.fr       */
+/*   Updated: 2024/05/22 11:17:05 by hkasbaou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -171,12 +171,12 @@ void root_pars(Config &sv,std::string line)
     std::cout << "size::" << resl.size() << std::endl;
     if(resl.size() == 0 || resl.size() > 1)
         ft_exit("root:: error ktar mn 1");
-    if(resl[0].find_first_not_of("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_-./\"") != std::string::npos)
+    if(resl[0].find_first_not_of("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_-./") != std::string::npos)
         ft_exit("root:: error alphabetic");
-    if(get_count(resl[0],'\"',1) != 2)
-        ft_exit("root:: error \"");
-    if(resl[0][0] != '\"' || resl[0][resl[0].size() - 1] != '\"')
-        ft_exit("root:: error \"");
+    // if(get_count(resl[0],'\"',1) != 2)
+    //     ft_exit("root:: error \"");
+    // if(resl[0][0] != '\"' || resl[0][resl[0].size() - 1] != '\"')
+    //     ft_exit("root:: error \"");
     sv.set_root(resl[0]);
 
 }
@@ -224,27 +224,29 @@ void error_pages_pars(Config &sv,std::vector<std::string> infos)
             ft_exit("error_pages:: error alphabetic");
         if(std::stoi(first_part) < 100 || std::stoi(first_part) > 599)
             ft_exit("error_pages:: error range");
-        if(seceond_part.find_first_not_of("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_-./\"") != std::string::npos)
+        if(seceond_part.find_first_not_of("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_-./") != std::string::npos)
             ft_exit("error_pages:: error alphabetic");
-        if(get_count(seceond_part,'\"',1) != 2)
-            ft_exit("error_pages:: error \"");
-        if(seceond_part[0] != '\"' || seceond_part[seceond_part.size() - 1] != '\"')
-            ft_exit("error_pages:: error \"");
+        // if(get_count(seceond_part,'\"',1) != 2)
+        //     ft_exit("error_pages:: error \"");
+        // if(seceond_part[0] != '\"' || seceond_part[seceond_part.size() - 1] != '\"')
+        //     ft_exit("error_pages:: error \"");
         sv.set_error_pages(std::stoi(first_part),seceond_part);
     }
 }
-std::string trim_and_check_exist(std::string data,std::string error,int check_cots)
+std::string trim_and_check_exist(std::string data,std::string error,int check_slash)
 {
     std::string info;
     info = trim(data.substr(data.find(":") + 1));
     if(info.size() == 0)
         ft_exit(error + "nothing");
-    if(check_cots == 1)
+    if(check_slash == 1)
     {
-        if(get_count(info,'\"',1) != 2)
-            ft_exit(error + "\"");
-        if(info[0] != '\"' || info[info.size() - 1] != '\"')
-            ft_exit(error + "\"");
+        if(info[0] != '/')
+            ft_exit(error + " need / in begin");
+        // if(get_count(info,'\"',1) != 2)
+        //     ft_exit(error + "\"");
+        // if(info[0] != '\"' || info[info.size() - 1] != '\"')
+        //     ft_exit(error + "\"");
     }
     return info;
 }
@@ -272,7 +274,7 @@ void router_pars(Config &sv,std::vector<std::string> infos)
             // info = trim(infos[i].substr(infos[i].find(":") + 1));
             // if(info.size() == 0)
             //     ft_exit("router_path:: error nothing");
-            if(info.find_first_not_of("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_-./\"") != std::string::npos)
+            if(info.find_first_not_of("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_-./") != std::string::npos)
                 ft_exit("router_path:: error alphabetic");
             // if(get_count(info,'\"',1) != 2)
             //     ft_exit("router_path:: error \"");
@@ -310,9 +312,9 @@ void router_pars(Config &sv,std::vector<std::string> infos)
         }
         else if(infos[i].find("directory:") != std::string::npos)
         {
-            std::string info = trim_and_check_exist(infos[i],"router_directory:: error ",1);
+            std::string info = trim_and_check_exist(infos[i],"router_directory:: error ",0);
             // info = trim(infos[i].substr(infos[i].find(":") + 1));
-            if(info.find_first_not_of("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_-./\"") != std::string::npos)
+            if(info.find_first_not_of("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_-./") != std::string::npos)
                 ft_exit("router_directory:: error alphabetic");
             // if(get_count(info,'\"',1) != 2)
             //     ft_exit("router_directory:: error 1 \"");
@@ -322,9 +324,9 @@ void router_pars(Config &sv,std::vector<std::string> infos)
         }
         else if(infos[i].find("redirect:") != std::string::npos)
         {
-            std::string info = trim_and_check_exist(infos[i],"router_redirect:: error ",1);
+            std::string info = trim_and_check_exist(infos[i],"router_redirect:: error ",0);
             // info = trim(infos[i].substr(infos[i].find(":") + 1));
-            if(info.find_first_not_of("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ:_-./\"") != std::string::npos)
+            if(info.find_first_not_of("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ:_-./") != std::string::npos)
                 ft_exit("router_redirect:: error alphabetic");
             // if(get_count(info,'\"',1) != 2)
             //     ft_exit("router_redirect:: error 1 \"");
@@ -488,5 +490,12 @@ void	Config::parssConfigs(char **av)
     vecOfvecOfPair server_router_info = split_router(big_vec);
     Config servers;
     all_info = insert_data_to_server(server_router_info, servers);
-    //display_info(all_info);
+    // display_info(all_info);
+}
+
+int main(int argc, char const *argv[])
+{
+    Config c;
+    c.parssConfigs((char **)argv);
+    return 0;
 }
