@@ -6,7 +6,7 @@
 /*   By: hkasbaou <hkasbaou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/18 14:32:35 by hkasbaou          #+#    #+#             */
-/*   Updated: 2024/05/20 10:25:36 by hkasbaou         ###   ########.fr       */
+/*   Updated: 2024/05/22 12:06:57 by hkasbaou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -194,4 +194,19 @@ void Config::clear_server()
     client_body_size.clear();
     root.clear();
     routes.clear();
+}
+
+Route::Route()
+{
+    useCGI = false;
+    default_file = "index.html";
+}
+Route::~Route()
+{
+    path.clear();
+    methods.clear();
+    directory.clear();
+    redirect.clear();
+    file.clear();
+    default_file.clear();
 }

@@ -7,6 +7,10 @@
 #include<vector>
 #include<sstream>
 #include "../../incs/Config.hpp"
+
+void set_env()
+{}
+
 void check_extention_file(std::string file)
 {
     std::string extention;
@@ -51,6 +55,8 @@ std::string CGI_EXEC(std::string full_path,char **env)
     if (pid == -1)
     {
         std::cerr << "Failed to fork." << std::endl;
+        close(pipefd[0]);
+        close(pipefd[1]);
         return 0;
     }
     else if (pid == 0)
@@ -59,13 +65,14 @@ std::string CGI_EXEC(std::string full_path,char **env)
         if (dup2(pipefd[1], STDOUT_FILENO) == -1)
         {
             std::cerr << "Failed to redirect STDOUT." << std::endl;
+            close(pipefd[1]);
             return 0;
         }
         close(pipefd[1]);
         // execve(phpPath, args, env);
         execve(args[0], args, NULL);
         std::cerr << "Error executing execve" << std::endl;
-        return 0;
+        exit(EXIT_FAILURE);
     }
     else 
     {
@@ -84,6 +91,11 @@ std::string CGI_EXEC(std::string full_path,char **env)
         close(pipefd[0]);
         int status;
         waitpid(pid, &status, 0); 
+        if(status != 0)
+        {
+            std::cerr << "Error: failed to execute" << std::endl;
+            return 0;
+        }
         std::cout << "status::" << status << std::endl;
         std::string outputStr(output.begin(), output.end());
         // std::cout << "Output:\n" << outputStr << std::endl;
@@ -98,6 +110,31 @@ int main(int ac, char **av)
         std::cerr << "Error: invalid argument" << std::endl;
         return 1;
     }
+
+    // Example values for environment variables
+    std::string method = "POST";
+    std::string query;
+    std::string contentType = "application/x-www-form-urlencoded";
+    std::string contentLength = "20";  // Assuming there is 20 bytes of data in the body
+    std::string scriptName = av[1];
+    std::string pathInfo = "";
+    std::string serverName = "localhost";
+    std::string serverPort = "8080";
+    std::string serverProtocol = "HTTP/1.1";
+    std::string remoteAddr = "127.0.0.1";
+    std::string remoteHost = "localhost";
+    std::string userAgent = "Mozilla/5.0";
+    std::string referer = "";
+    std::string cookie = "";
+
+    if (method == "POST") {
+        // Read POST data from stdin
+        int contentLengthInt = std::stoi(contentLength);
+        std::vector<char> postData(contentLengthInt);
+        std::cin.read(postData.data(), contentLengthInt);
+        query.assign(postData.begin(), postData.end());
+    }
+    std::cout << "query::" << query << std::endl;
     CGI_EXEC(av[1], NULL);
     return 0;
 }
