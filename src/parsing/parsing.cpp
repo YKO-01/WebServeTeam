@@ -6,7 +6,7 @@
 /*   By: hkasbaou <hkasbaou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/26 14:07:13 by hkasbaou          #+#    #+#             */
-/*   Updated: 2024/05/25 10:05:07 by hkasbaou         ###   ########.fr       */
+/*   Updated: 2024/05/25 10:59:41 by hkasbaou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -273,23 +273,13 @@ void router_pars(Config &sv,std::vector<std::string> infos)
         if(infos[i].find("default_file:") != std::string::npos)
         {
             std::string info = trim_and_check_exist(infos[i],"router_default_file:: error ",0);
-            // info = trim(infos[i].substr(infos[i].find(":") + 1));
-            // if(info.size() == 0)
-            //     ft_exit("router_default_file:: error nothing");
             route.set_default_file(info);
         }
         else if(infos[i].find("path:") != std::string::npos)
         {
             std::string info = trim_and_check_exist(infos[i],"router_path:: error ",1);
-            // info = trim(infos[i].substr(infos[i].find(":") + 1));
-            // if(info.size() == 0)
-            //     ft_exit("router_path:: error nothing");
             if(info.find_first_not_of("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_-./\"") != std::string::npos)
                 ft_exit("router_path:: error alphabetic");
-            // if(get_count(info,'\"',1) != 2)
-            //     ft_exit("router_path:: error \"");
-            // if(info[0] != '\"' || info[info.size() - 1] != '\"')
-            //     ft_exit("router_path:: error \"");
             route.set_path(remove_quots(info));
         }
         else if(infos[i].find("methods:") != std::string::npos)
@@ -323,33 +313,20 @@ void router_pars(Config &sv,std::vector<std::string> infos)
         else if(infos[i].find("directory:") != std::string::npos)
         {
             std::string info = trim_and_check_exist(infos[i],"router_directory:: error ",1);
-            // info = trim(infos[i].substr(infos[i].find(":") + 1));
             if(info.find_first_not_of("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_-./\"") != std::string::npos)
                 ft_exit("router_directory:: error alphabetic");
-            // if(get_count(info,'\"',1) != 2)
-            //     ft_exit("router_directory:: error 1 \"");
-            // if(info[0] != '\"' || info[info.size() - 1] != '\"')
-            //     ft_exit("router_directory:: error 2 \"");
             route.set_directory(remove_quots(info));
         }
         else if(infos[i].find("redirect:") != std::string::npos)
         {
             std::string info = trim_and_check_exist(infos[i],"router_redirect:: error ",1);
-            // info = trim(infos[i].substr(infos[i].find(":") + 1));
             if(info.find_first_not_of("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ:_-./\"") != std::string::npos)
                 ft_exit("router_redirect:: error alphabetic");
-            // if(get_count(info,'\"',1) != 2)
-            //     ft_exit("router_redirect:: error 1 \"");
-            // if(info[0] != '\"' || info[info.size() - 1] != '\"')
-            //     ft_exit("router_redirect:: error 2 \"");
             route.set_redirect(remove_quots(info));
         }
         else if(infos[i].find("directory_listing:") != std::string::npos)
         {
             std::string info = trim_and_check_exist(infos[i],"router_directory_listing:: error ",0);
-            // info = trim(infos[i].substr(infos[i].find(":") + 1));
-            // if(info.find_first_not_of("abcdefjhigklmnopqrstuvwxyz") != std::string::npos)
-            //     ft_exit("router_directory_listing:: error alphabetic");
             if(info != "on" && info != "off")
                 ft_exit("router_directory_listing:: error on/off");
             if(info == "on")
@@ -360,9 +337,6 @@ void router_pars(Config &sv,std::vector<std::string> infos)
         else if(infos[i].find("useCGI:") != std::string::npos)
         {
             std::string info = trim_and_check_exist(infos[i],"router_useCGI:: error ",0);
-            // info = trim(infos[i].substr(infos[i].find(":") + 1));
-            // if(info.find_first_not_of("abcdefjhigklmnopqrstuvwxyz") != std::string::npos)
-            //     ft_exit("router_useCGI:: error alphabetic");
             if(info != "true" && info != "false")
                 ft_exit("router_useCGI:: error on/off");
             if(info == "true")
@@ -370,22 +344,6 @@ void router_pars(Config &sv,std::vector<std::string> infos)
             else
                 route.set_useCGI(false);
         }
-        // else if(infos[i].find("cgi_bin:") != std::string::npos)
-        // {
-        //     std::string info = trim_and_check_exist(infos[i],"router_cgi_bin:: error ",0);
-        //     // info = trim(infos[i].substr(infos[i].find(":") + 1));
-        //     // if(info.size() == 0)
-        //     //     ft_exit("router_cgi_bin:: error nothing");
-        //     route.set_cgi_bin(info);
-        // }
-        // else if(infos[i].find("cgi_extension:") != std::string::npos)
-        // {
-        //     std::string info = trim_and_check_exist(infos[i],"router_cgi_extension:: error ",0);
-        //     // info = trim(infos[i].substr(infos[i].find(":") + 1));
-        //     // if(info.size() == 0)
-        //     //     ft_exit("router_cgi_extension:: error nothing");
-        //     route.set_cgi_extension(info);
-        // }
         else
             ft_exit("router::error not valid key");
     }
@@ -406,6 +364,22 @@ void check_info_exit(std::vector<Config> s)
         if(s[i].get_routes().size() == 0)
             ft_exit("router::error");
     }
+}
+void check_root_in_router_exist(Config &serv)
+{
+    std::vector<Route> routes = serv.get_routes();
+    for (size_t i = 0; i < routes.size(); i++)
+    {
+        if(routes[i].get_path().compare("/") == 0)
+            return;
+    }
+    Route new_route;
+    new_route.set_path("/");
+    new_route.set_default_file("index.html");
+    new_route.set_directory(serv.get_root());
+    new_route.set_useCGI(false);
+
+    serv.set_routes(new_route);
 }
 std::vector<Config> insert_data_to_server(vecOfvecOfPair server_router_info, Config &serv)
 {
@@ -434,11 +408,11 @@ std::vector<Config> insert_data_to_server(vecOfvecOfPair server_router_info, Con
             else
                 ft_exit("error::not valid key");
         }
+        check_root_in_router_exist(serv);
         servers[i] = serv;
         serv.get_routes().clear();
         serv.clear_server();
     }
-
     return servers;
 }
 void display_info(std::vector<Config> all_info)
