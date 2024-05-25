@@ -6,7 +6,7 @@
 /*   By: hkasbaou <hkasbaou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/18 14:32:35 by hkasbaou          #+#    #+#             */
-/*   Updated: 2024/05/24 16:33:29 by hkasbaou         ###   ########.fr       */
+/*   Updated: 2024/05/25 13:08:15 by hkasbaou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,7 +39,7 @@ std::map<int, std::string> Config::get_error_pages()
 {
     return error_pages;
 }
-std::string Config::get_client_body_size()
+size_t Config::get_client_body_size()
 {
     return client_body_size;
 }
@@ -76,7 +76,7 @@ void Config::set_error_pages(int error_code, std::string error_page)
 {
     this->error_pages[error_code] = error_page;
 }
-void Config::set_client_body_size(std::string client_body_size)
+void Config::set_client_body_size(size_t client_body_size)
 {
     this->client_body_size = client_body_size;
 }
@@ -90,7 +90,7 @@ std::string Route::get_path()
 {
     return path;
 }
-std::vector<std::string> Route::get_methods()
+std::vector<Method> Route::get_methods()
 {
     return methods;
 }
@@ -110,14 +110,7 @@ std::string Route::get_default_file()
 {
     return default_file;
 }
-// std::string Route::get_cgi_bin()
-// {
-//     return cgi_bin;
-// }
-// std::string Route::get_cgi_extension()
-// {
-//     return cgi_extension;
-// }
+
 bool Route::get_useCGI()
 {
     return useCGI;
@@ -131,9 +124,9 @@ void Route::set_path(std::string path)
 {
     this->path = path;
 }
-void Route::set_methods(std::vector<std::string> methods)
+void Route::set_methods(Method method)
 {
-    this->methods = methods;
+    this->methods.push_back(method);
 }
 void Route::set_directory(std::string directory)
 {
@@ -155,14 +148,7 @@ void Route::set_useCGI(bool cgi)
 {
     this->useCGI = cgi;
 }
-// void Route::set_cgi_bin(std::string cgi_bin)
-// {
-//     this->cgi_bin = cgi_bin;
-// }
-// void Route::set_cgi_extension(std::string cgi_extension)
-// {
-//     this->cgi_extension = cgi_extension;
-// }
+
 void Route::set_directory_listing(bool directory_listing)
 {
     this->directory_listing = directory_listing;
@@ -191,13 +177,14 @@ void Config::clear_server()
     server_names.clear();
     default_server = false;
     error_pages.clear();
-    client_body_size.clear();
+    client_body_size  = 0;
     root.clear();
     routes.clear();
 }
 
 Route::Route()
 {
+    directory_listing = false;
     useCGI = false;
     default_file = "index.html"; 
 }

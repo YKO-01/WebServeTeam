@@ -6,16 +6,10 @@
 /*   By: hkasbaou <hkasbaou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/26 14:07:13 by hkasbaou          #+#    #+#             */
-/*   Updated: 2024/05/25 10:59:41 by hkasbaou         ###   ########.fr       */
+/*   Updated: 2024/05/25 14:56:12 by hkasbaou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <iostream>
-#include <fstream>
-#include <string>
-#include <vector>
-#include <iostream>
-#include <sstream>
 #include "../../incs/Config.hpp"
 
 
@@ -35,7 +29,7 @@ void Config::display_server()
 }
 
 
-Config::Config(): port(-1), default_server(false),client_body_size("null")
+Config::Config(): port(-1), default_server(false),client_body_size(0)
 {}
 
 void display(std::pair<std::string, std::vector<std::string> > pair)
@@ -236,7 +230,7 @@ void client_body_size_pars(Config &sv,std::string line)
         ft_exit("client_body:: error alphabetic");
     if(std::stoi(resl[0]) < 0)
         ft_exit("client_body:: error range");
-    sv.set_client_body_size(resl[0]);
+    sv.set_client_body_size(std::stoul(resl[0]));
 }
 void error_pages_pars(Config &sv,std::vector<std::string> infos)
 {	
@@ -263,10 +257,10 @@ void error_pages_pars(Config &sv,std::vector<std::string> infos)
 void router_pars(Config &sv,std::vector<std::string> infos)
 {
     Route route;
-    std::vector<std::string> methods;
-    methods.push_back("GET");
-    methods.push_back("POST");
-    methods.push_back("DELETE");
+    std::vector<std::pair<std::string ,Method> > methods;
+    methods.push_back(std::make_pair("GET",GET));
+    methods.push_back(std::make_pair("POST",POST));
+    methods.push_back(std::make_pair("DELETE",DELETE));
     route.clear_route();
     for (size_t i = 0; i < infos.size(); i++)
     {
@@ -285,30 +279,28 @@ void router_pars(Config &sv,std::vector<std::string> infos)
         else if(infos[i].find("methods:") != std::string::npos)
         {
             std::string line;
-            std::vector<std::string> mtods;
+            std::vector<Method> mtods;
             int count_methods = 0;
             line = trim(infos[i].substr(infos[i].find(":") + 1));
             std::vector<std::string> resl;
             resl = split_stream(line,',');
             if(resl.size() == 0)
-                ft_exit("router_methods:: error nothing");
+                ft_exit("router_methods error nothing");
             for (size_t i = 0; i < resl.size(); i++)
             {
-                if(resl[i].find("GET") != std::string::npos)
+                size_t count_methods = 0;
+                for (size_t j = 0; j < methods.size(); j++)
+                {
+                    if(resl[i].find(methods[j].first) != std::string::npos)
+                    {
+                        route.set_methods(methods[j].second);
+                        break;
+                    }
                     count_methods++;
-                else if(resl[i].find("POST") != std::string::npos)
-                    count_methods++;
-                else if(resl[i].find("DELETE") != std::string::npos)
-                    count_methods++;
-                else
-                    ft_exit("router_methods:: error alphabetic");
+                }
+                if(count_methods == methods.size())
+                    ft_exit("router_methods:: error mwehods");
             }
-            if(resl.size() != (size_t)count_methods)
-                ft_exit("router_methods:: error no methods");
-            count_methods = 0;
-            for (size_t i = 0; i < resl.size(); i++)
-                mtods.push_back(resl[i]);
-            route.set_methods(mtods);
         }
         else if(infos[i].find("directory:") != std::string::npos)
         {
@@ -359,7 +351,7 @@ void check_info_exit(std::vector<Config> s)
             ft_exit("Error::no port");
         if(s[i].get_server_names().size() == 0)
             ft_exit("server_names::error");
-        if(s[i].get_client_body_size() == "null")
+        if(s[i].get_client_body_size() == 0)
             ft_exit("client_body_size::error");
         if(s[i].get_routes().size() == 0)
             ft_exit("router::error");
@@ -369,10 +361,8 @@ void check_root_in_router_exist(Config &serv)
 {
     std::vector<Route> routes = serv.get_routes();
     for (size_t i = 0; i < routes.size(); i++)
-    {
         if(routes[i].get_path().compare("/") == 0)
             return;
-    }
     Route new_route;
     new_route.set_path("/");
     new_route.set_default_file("index.html");
@@ -406,7 +396,7 @@ std::vector<Config> insert_data_to_server(vecOfvecOfPair server_router_info, Con
             else if(server_router_info[i][j].first.find("router") != std::string::npos)
                 router_pars(serv, server_router_info[i][j].second);
             else
-                ft_exit("error::not valid key");
+                ft_exit("error::not valid key" + server_router_info[i][j].first);
         }
         check_root_in_router_exist(serv);
         servers[i] = serv;
@@ -420,10 +410,14 @@ void display_info(std::vector<Config> all_info)
     for (size_t i = 0; i < all_info.size(); i++)
     {
         std::cout << "-------------------------------" << std::endl;
+        std::cout << "-------------------------------" << std::endl;
+        std::cout << "-------------------------------" << std::endl;
+        std::cout << "-------------------------------" << std::endl;
         all_info[i].display_server();
         for (size_t j = 0; j < all_info[i].get_routes().size(); j++)
         {
-            std::vector<std::string> methods = all_info[i].get_routes()[j].get_methods();
+            std::cout << "++++++++++++++++++++++++++++++++++" << std::endl;
+            std::vector<Method> methods = all_info[i].get_routes()[j].get_methods();
             std::cout << "path: " << all_info[i].get_routes()[j].get_path() << std::endl;
             std::cout << "default_file: " << all_info[i].get_routes()[j].get_default_file() << std::endl;
             std::cout << "methods: " << std::endl;
@@ -433,8 +427,7 @@ void display_info(std::vector<Config> all_info)
             std::cout << "redirect: " << all_info[i].get_routes()[j].get_redirect() << std::endl;
             std::cout << "directory_listing: " << all_info[i].get_routes()[j].get_directory_listing() << std::endl;
             std::cout << "useCGI: " << all_info[i].get_routes()[j].get_useCGI() << std::endl;
-            // std::cout << "cgi_bin: " << all_info[i].get_routes()[j].get_cgi_bin() << std::endl;
-            // std::cout << "cgi_extension: " << all_info[i].get_routes()[j].get_cgi_extension() << std::endl;
+            std::cout << "++++++++++++++++++++++++++++++++++" << std::endl;
         }
     }
 }
@@ -474,7 +467,7 @@ void	Config::parssConfigs(char **av)
     vecOfvecOfPair server_router_info = split_router(big_vec);
     Config servers;
     all_info = insert_data_to_server(server_router_info, servers);
-    display_info(all_info);
+    // display_info(all_info);
 }
 
 int main(int argc, char const *argv[])
