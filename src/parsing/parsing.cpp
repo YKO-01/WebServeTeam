@@ -6,7 +6,7 @@
 /*   By: hkasbaou <hkasbaou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/26 14:07:13 by hkasbaou          #+#    #+#             */
-/*   Updated: 2024/05/23 13:09:44 by hkasbaou         ###   ########.fr       */
+/*   Updated: 2024/05/25 10:05:07 by hkasbaou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -203,7 +203,7 @@ void root_pars(Config &sv,std::string line)
         ft_exit("root:: error \"");
     if(resl[0][0] != '\"' || resl[0][resl[0].size() - 1] != '\"')
         ft_exit("root:: error \"");
-    sv.set_root(resl[0]);
+    sv.set_root(remove_quots(resl[0]));
 
 }
 void server_name_pars(Config &sv,std::string line)
@@ -256,7 +256,7 @@ void error_pages_pars(Config &sv,std::vector<std::string> infos)
             ft_exit("error_pages:: error \"");
         if(seceond_part[0] != '\"' || seceond_part[seceond_part.size() - 1] != '\"')
             ft_exit("error_pages:: error \"");
-        sv.set_error_pages(std::stoi(first_part),seceond_part);
+        sv.set_error_pages(std::stoi(first_part),remove_quots(seceond_part));
     }
 }
 
@@ -290,7 +290,7 @@ void router_pars(Config &sv,std::vector<std::string> infos)
             //     ft_exit("router_path:: error \"");
             // if(info[0] != '\"' || info[info.size() - 1] != '\"')
             //     ft_exit("router_path:: error \"");
-            route.set_path(info);
+            route.set_path(remove_quots(info));
         }
         else if(infos[i].find("methods:") != std::string::npos)
         {
@@ -330,7 +330,7 @@ void router_pars(Config &sv,std::vector<std::string> infos)
             //     ft_exit("router_directory:: error 1 \"");
             // if(info[0] != '\"' || info[info.size() - 1] != '\"')
             //     ft_exit("router_directory:: error 2 \"");
-            route.set_directory(info);
+            route.set_directory(remove_quots(info));
         }
         else if(infos[i].find("redirect:") != std::string::npos)
         {
@@ -342,7 +342,7 @@ void router_pars(Config &sv,std::vector<std::string> infos)
             //     ft_exit("router_redirect:: error 1 \"");
             // if(info[0] != '\"' || info[info.size() - 1] != '\"')
             //     ft_exit("router_redirect:: error 2 \"");
-            route.set_redirect(info);
+            route.set_redirect(remove_quots(info));
         }
         else if(infos[i].find("directory_listing:") != std::string::npos)
         {
