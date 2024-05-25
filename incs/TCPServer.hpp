@@ -1,17 +1,17 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   build_server.hpp                                   :+:      :+:    :+:   */
+/*   TCPServer.hpp                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: ayakoubi <ayakoubi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/28 19:37:27 by ayakoubi          #+#    #+#             */
-/*   Updated: 2024/05/09 11:05:25 by ayakoubi         ###   ########.fr       */
+/*   Updated: 2024/05/20 09:31:25 by ayakoubi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef BUILD_SERVER_HPP
-#define BUILD_SERVER_HPP
+#ifndef TCPSERVER_HPP
+#define TCPSERVER_HPP
 
 #include <iostream>
 #include <unistd.h>
@@ -27,15 +27,9 @@
 
 #define TRUE 1
 #define FALSE 0
-#define BUFFER_SIZE 50
+#define BUFFER_SIZE 2048
 #define MAX_CONNECTION 10
 #define SERVERPORT  5555
-
-typedef struct serverConfig
-{
-	std::string ip;
-	int port;
-}	t_serverConfig;
 
 class TCPServer
 {
@@ -54,9 +48,9 @@ class TCPServer
 		bool	initSocket();
 		void	runServer();
 		bool	acceptConnection(int serverSD);
-		int		readRoutine(int sock, std::string& request);
-		void	sendRoutine(int sock, std::string& request);
-		void	chunkRequest(std::string request);
+		int		readRoutine(int sock);
+		void	sendRoutine(int sock);
+		void	chunkRequest(std::string request, int *headerStatus);
 
 		void	fillVectorConfigs();
 		int		existSocket(int sock);

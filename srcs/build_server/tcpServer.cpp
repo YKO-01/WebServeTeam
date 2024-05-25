@@ -6,12 +6,12 @@
 /*   By: ayakoubi <ayakoubi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/15 13:37:56 by ayakoubi          #+#    #+#             */
-/*   Updated: 2024/05/09 14:22:25 by ayakoubi         ###   ########.fr       */
+/*   Updated: 2024/05/21 12:52:21 by ayakoubi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "build_server.hpp"
-
+#include "TCPServer.hpp"
+#include <netdb.h>
 
 // __ Constructor & Destructor _________________________________________________
 // =============================================================================
@@ -29,20 +29,6 @@ TCPServer::~TCPServer()
 {
 	close(serverSD);
 }
-
-/*void	TCPServer::fillVectorConfigs()
-{
-	t_serverConfig config[3];
-	config[0].ip = "127.0.0.1";
-	config[0].port = 5555;
-	config[1].ip = "127.0.0.1";
-	config[1].port = 8888;
-	config[2].ip = "127.0.0.1";
-	config[2].port = 7777;
-	configs.push_back(config[0]);
-	configs.push_back(config[1]);
-	configs.push_back(config[2]);
-}*/	
 
 // __ Init Socket  _____________________________________________________________
 // =============================================================================
@@ -74,7 +60,7 @@ bool	TCPServer::initSocket()
 			return (false);
 		}
 		// listen to the client connection request
-		if (listen(serverSD, 10) < 0)
+		if (listen(serverSD, SOMAXCONN) < 0)
 		{
 			std::cout << "failed to listening" << std::endl;
 			return (false);
@@ -128,21 +114,14 @@ bool TCPServer::acceptConnection(int serverSD)
 	return (true);
 }	
 
-char	*joinRequest(char *old, char *buffer)
-{
-	char *request = new char[strlen(old) + strlen(buffer)];
-
-	request = strcat(old, buffer);
-	return request;
-}
-
 // __ Read Routine _____________________________________________________________
 // =============================================================================
-int		TCPServer::readRoutine(int sock, std::string& request)
+int		TCPServer::readRoutine(int sock)
 {
-	request.clear();
 	char buffer[BUFFER_SIZE];
 	int bytesNum;
+	int headerStatus = 0;
+	std::string request;
 
 	bytesNum = 0;
 	while (1)
@@ -160,8 +139,10 @@ int		TCPServer::readRoutine(int sock, std::string& request)
 		else if (bytesNum > 0)
 		{
 			buffer[bytesNum] = 0;
-		//	std::cout << buffer << std::endl;
-			request.append(buffer);
+			request = buffer;
+			chunkRequest(request, &headerStatus);
+			//if (headerStatus == 1)
+				// parsing header from amine 	
 		}
 		if (bytesNum < BUFFER_SIZE - 1)
 			break;
@@ -171,17 +152,28 @@ int		TCPServer::readRoutine(int sock, std::string& request)
 
 // __ Send Routine _____________________________________________________________
 // =============================================================================
-void	TCPServer::sendRoutine(int sock, std::string& request)
+void	TCPServer::sendRoutine(int sock)
 {
-	chunkRequest(request);
-	std::cout << " =========== " << std::endl << request << std::endl;
-	send(sock, request.c_str(), request.length(), 0);
-	/*size_t i = -1;
-	while (++i < request.size())
-	{
-		std::cout << request[i] << std::endl;
-		send(sock, request[i], strlen(request[i]), 0);
-	}*/
+	//chunkRequest(request);
+	//body = "HTTP/1.1 200 OK\r\n\r\n<html>\n\r<body>\n\r\rhello\n\r</body>\n</html>";
+	std::string response = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n";
+    response += "<html>\n";
+    response += "<body>\n";
+    response += "<h2>Simple Form Example</h2>\n";
+    response += "<form action=\"/submit\" method=\"post\">\n";
+    response += "  <label for=\"name\">Name:</label><br>\n";
+    response += "  <input type=\"text\" id=\"name\" name=\"name\"><br>\n";
+    response += "  <label for=\"email\">Email:</label><br>\n";
+    response += "  <input type=\"text\" id=\"email\" name=\"email\"><br><br>\n";
+    response += "  <input type=\"submit\" value=\"Submit\">\n";
+    response += "</form>\n";
+    response += "</body>\n";
+    response += "</html>\n";
+	send(sock, response.c_str(), response.length(), 0);
+	header.clear();
+	body.clear();
+	FD_CLR(sock, &FDs);
+	close(sock);
 }
 
 // __ Exist Socket _____________________________________________________________
@@ -206,7 +198,6 @@ void	TCPServer::runServer()
 	int fdNum;
 	int	i, j;
 	int bytesNum = 0;
-	std::string request;
 
 	while (1)
 	{
@@ -225,33 +216,54 @@ void	TCPServer::runServer()
 				{
 					//request.clear();
 					bytesNum = 0;
-					bytesNum = readRoutine(i, request);
+					bytesNum = readRoutine(i);
 					if (bytesNum > 0)
-						sendRoutine(i, request);
+						sendRoutine(i);
 				}
 			}
 		}
 	}
-	for (i = 0; i < fdMax + 1; i++)
-		close(i);
 	for (i = 0; i < static_cast<int>(serverSockets.size()); i++)
 		close(serverSockets[i]);
 }
 
 // __ Chunked Request __________________________________________________________
 // =============================================================================
-void	TCPServer::chunkRequest(std::string request)
+void		TCPServer::chunkRequest(std::string request, int *headerStatus)
 {
 	size_t pos;
+	pos = 0;
 
 	std::string dil = "\n\r\n";
-	pos = request.find(dil);
-	header = request.substr(0, pos);
-	std::cout << "pos : " << pos << "   " << request.length() << std::endl; 
-	if (header.length() < request.length())
-		body = request.substr(pos + 3, request.length());
-	else
-		body.clear();
+	if (*headerStatus == 0)
+	{
+		if (!header.empty() && header[header.size() - 1] == '\n' && request[0] == '\r' && request[1] == '\n')
+		{
+			pos = 2;
+			//header += request.substr(0, pos);
+			*headerStatus = 1;
+		}
+		else if (!header.empty() && header[header.size() - 2] == '\n' && request[0] == '\n')
+		{
+			pos = 1;
+			//header += request.substr(0, pos);
+			*headerStatus = 1;
+		}
+		else
+		{
+			pos = request.find(dil);
+			if (pos < request.size())
+			{
+				header.append(request.substr(0, pos));
+				*headerStatus = 1;
+				pos += 3;
+			}
+			else
+				header.append(request);
+		}
+	}
+	if (*headerStatus == 1)
+		body.append(request.substr(pos, request.size()));
 	std::cout << "header :" << std::endl << header << std::endl;
 	std::cout << "body :" << std::endl << body << std::endl;
 }
