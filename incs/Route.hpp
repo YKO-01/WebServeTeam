@@ -6,17 +6,31 @@
 /*   By: hkasbaou <hkasbaou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/26 14:07:10 by hkasbaou          #+#    #+#             */
-/*   Updated: 2024/05/22 12:03:23 by hkasbaou         ###   ########.fr       */
+/*   Updated: 2024/05/25 14:57:02 by hkasbaou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+#pragma once
 #include <iostream>
 #include <vector>
 #include <map>
+
+typedef enum
+{
+	GET,
+	PUT,
+	POST,
+	HEAD,
+	TRACE,
+	PATCH,
+	DELETE,
+	CONNECT,
+	OPTIONS
+}	Method;
 class Route {
     private:
         std::string                 path;
-        std::vector<std::string>    methods;
+        std::vector<Method>         methods;
         std::string                 directory;
         std::string                 redirect;
         std::string                 file; 
@@ -30,7 +44,7 @@ class Route {
     
         //geters
         std::string get_path();
-        std::vector<std::string> get_methods();
+        std::vector<Method> get_methods();
         std::string get_directory();
         std::string get_redirect();
         std::string get_file();
@@ -42,7 +56,7 @@ class Route {
         
         //setters
         void set_path(std::string path);
-        void set_methods(std::vector<std::string> methods);
+        void set_methods(Method metod);
         void set_directory(std::string directory);
         void set_redirect(std::string redirect);
         void set_file(std::string file);
