@@ -6,7 +6,7 @@
 /*   By: ayakoubi <ayakoubi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/15 13:37:56 by ayakoubi          #+#    #+#             */
-/*   Updated: 2024/05/21 12:52:21 by ayakoubi         ###   ########.fr       */
+/*   Updated: 2024/05/26 15:30:01 by ayakoubi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -141,8 +141,10 @@ int		TCPServer::readRoutine(int sock)
 			buffer[bytesNum] = 0;
 			request = buffer;
 			chunkRequest(request, &headerStatus);
-			//if (headerStatus == 1)
-				// parsing header from amine 	
+			if (headerStatus == 1)
+			{
+				httpParser = new HTTPParser(header);
+			}
 		}
 		if (bytesNum < BUFFER_SIZE - 1)
 			break;
@@ -156,11 +158,11 @@ void	TCPServer::sendRoutine(int sock)
 {
 	//chunkRequest(request);
 	//body = "HTTP/1.1 200 OK\r\n\r\n<html>\n\r<body>\n\r\rhello\n\r</body>\n</html>";
-	std::string response = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n";
+	std::string response = "HTTP/1.1 200 OK\r\nSet-Cookie: name=ahmed\r\nContent-Type: text/html\r\n\r\n";
     response += "<html>\n";
     response += "<body>\n";
     response += "<h2>Simple Form Example</h2>\n";
-    response += "<form action=\"/submit\" method=\"post\">\n";
+    response += "<form action=\"/submit\" method=\"get\">\n";
     response += "  <label for=\"name\">Name:</label><br>\n";
     response += "  <input type=\"text\" id=\"name\" name=\"name\"><br>\n";
     response += "  <label for=\"email\">Email:</label><br>\n";
@@ -214,11 +216,16 @@ void	TCPServer::runServer()
 				}
 				else if (FD_ISSET(i, &FDsCopy))
 				{
-					//request.clear();
 					bytesNum = 0;
 					bytesNum = readRoutine(i);
 					if (bytesNum > 0)
+					{
+						std::string sessionID = _session.generateSessionID();
+						std::cout << sessionID << std::endl;
+						_session.setSession(sessionID, "name=ahmed");
+						std::cout << _session.getSession(sessionID) << std::endl;
 						sendRoutine(i);
+					}
 				}
 			}
 		}

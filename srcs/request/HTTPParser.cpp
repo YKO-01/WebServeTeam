@@ -3,16 +3,16 @@
 /*                                                        :::      ::::::::   */
 /*   HTTPParser.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ael-mhar <ael-mhar@student.1337.ma>        +#+  +:+       +#+        */
+/*   By: ayakoubi <ayakoubi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/11 10:00:28 by ael-mhar          #+#    #+#             */
-/*   Updated: 2024/05/20 12:58:55 by ael-mhar         ###   ########.fr       */
+/*   Updated: 2024/05/25 10:52:22 by ayakoubi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "HTTPParser.hpp"
 
-HTTPParser::HTTPParser(std::string request)
+HTTPParser::HTTPParser(std::string& request)
 {
 	Header header;
 	Iterator it;

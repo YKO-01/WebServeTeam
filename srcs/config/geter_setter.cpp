@@ -3,14 +3,14 @@
 /*                                                        :::      ::::::::   */
 /*   geter_setter.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: hkasbaou <hkasbaou@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ayakoubi <ayakoubi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/18 14:32:35 by hkasbaou          #+#    #+#             */
-/*   Updated: 2024/05/22 12:06:57 by hkasbaou         ###   ########.fr       */
+/*   Updated: 2024/05/25 10:31:31 by ayakoubi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../../incs/Config.hpp"
+#include "Config.hpp"
 // #include "../../incs/Route.hpp"
 
 // --------  config  --------

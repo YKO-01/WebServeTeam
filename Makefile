@@ -6,7 +6,7 @@
 #    By: ayakoubi <ayakoubi@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/03/06 12:38:17 by ayakoubi          #+#    #+#              #
-#    Updated: 2024/05/22 10:34:59 by ayakoubi         ###   ########.fr        #
+#    Updated: 2024/05/26 13:09:17 by ayakoubi         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -18,21 +18,29 @@ CPPFLAGS	=	-Wall -Wextra -Werror -std=c++98 -g -fsanitize=address
 INC			=	incs
 OBJDIR		=	objs
 SRCDIR		=	srcs
-BUILDDIR	=	build_server
-PARSSDIR	=	parsingConFile
+SRVDIR		=	server
+CNFDIR		=	config
+REQDIR		=	request
+SESDIR		=	session
 
 SRCMAIN		=	main
-SRCBUILD	:=	TCPServer
-SRCPARSS	:=	parsing utils geter_setter
+SRCSERV		:=	TCPServer
+SRCCNFG		:=	parsing utils geter_setter
+SRCREQ		:=	HTTPParser Utils
+SRCSESS		:=	Session
 
 OBJMAIN		:=	$(addprefix $(OBJDIR)/, $(addsuffix .o, $(SRCMAIN)))
 SRCMAIN		:=	$(addprefix $(SRCDIR)/, $(addsuffix .cpp, $(SRCMAIN)))
-OBJBUILD	:=	$(addprefix $(OBJDIR)/$(BUILDDIR)/, $(addsuffix .o, $(SRCBUILD)))
-SRCBUILD	:=	$(addprefix $(SRCDIR)/$(BUILDDIR)/, $(addsuffix .cpp, $(SRCBUILD)))
-OBJPARSS	:=	$(addprefix $(OBJDIR)/$(PARSSDIR)/, $(addsuffix .o, $(SRCPARSS)))
-SRCPARSS	:=	$(addprefix $(SRCDIR)/$(PARSSDIR)/, $(addsuffix .cpp, $(SRCPARSS)))
+OBJSERV		:=	$(addprefix $(OBJDIR)/$(SRVDIR)/, $(addsuffix .o, $(SRCSERV)))
+SRCSERV		:=	$(addprefix $(SRCDIR)/$(SRVDIR)/, $(addsuffix .cpp, $(SRCSERV)))
+OBJCNFG		:=	$(addprefix $(OBJDIR)/$(CNFDIR)/, $(addsuffix .o, $(SRCCNFG)))
+SRCCNFG		:=	$(addprefix $(SRCDIR)/$(CNFDIR)/, $(addsuffix .cpp, $(SRCCNFG)))
+OBJREQ		:=	$(addprefix $(OBJDIR)/$(REQDIR)/, $(addsuffix .o, $(SRCREQ)))
+SRCREQ		:=	$(addprefix $(SRCDIR)/$(REQDIR)/, $(addsuffix .cpp, $(SRCREQ)))
+OBJSESS		:=	$(addprefix $(SRCDIR)/$(SESDIR)/, $(addsuffix .o, $(SRCSESS)))
+SRCSESS		:=	$(addprefix $(SRCDIR)/$(SESDIR)/, $(addsuffix .cpp, $(SRCSESS)))
 
-# OBJBUILD	:=	$(addprefix $(OBJDIR)/, $(patsubst %.cpp,%.o,$(SRCBUILD)))
+# OBJSERV	:=	$(addprefix $(OBJDIR)/, $(patsubst %.cpp,%.o,$(SRCSERV)))
 
 
 # __ COLOR _____________________________________________________________________
@@ -48,14 +56,16 @@ RESET = \033[0m
 # ==============================================================================
 $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
 	@mkdir -p $(OBJDIR)
-	@mkdir -p $(OBJDIR)/$(BUILDDIR)
-	@mkdir -p $(OBJDIR)/$(PARSSDIR)
+	@mkdir -p $(OBJDIR)/$(SRVDIR)
+	@mkdir -p $(OBJDIR)/$(CNFDIR)
+	@mkdir -p $(OBJDIR)/$(REQDIR)
+	@mkdir -p $(OBJDIR)/$(SESDIR)
 	@$(CPP) $(CPPFLAGS) -c $< -I $(INC) -o $@
 	@echo "$(GREEN) [OK] $(RESET) $(YELLOW) compile >>>> $< $(RESET)"
 
 all:	$(NAME)
 
-$(NAME) :	$(OBJBUILD) $(OBJMAIN) $(OBJPARSS)
+$(NAME) :	$(OBJSERV) $(OBJMAIN) $(OBJCNFG) $(OBJREQ) $(OBJSESS)
 	@$(CPP) $(CPPFLAGS) $^ -I $(INC) -o $(NAME)
 	@@echo "$(GREEN) ------ Built success ------ $(RESET)"
 

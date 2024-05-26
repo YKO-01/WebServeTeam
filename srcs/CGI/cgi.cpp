@@ -6,7 +6,7 @@
 #include<fstream>
 #include<vector>
 #include<sstream>
-#include "../../incs/Config.hpp"
+#include "../config/Config.hpp"
 
 void set_env()
 {}

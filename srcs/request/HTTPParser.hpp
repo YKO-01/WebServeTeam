@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HTTPParser.hpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ael-mhar <ael-mhar@student.1337.ma>        +#+  +:+       +#+        */
+/*   By: ayakoubi <ayakoubi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/15 11:42:35 by ael-mhar          #+#    #+#             */
-/*   Updated: 2024/05/25 08:53:16 by ael-mhar         ###   ########.fr       */
+/*   Updated: 2024/05/25 10:52:26 by ayakoubi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,7 @@ class HTTPParser : public IHTTPParser
 		Status	status;
 
 	public:
-		HTTPParser(std::string request);
+		HTTPParser(std::string& request);
 		virtual Status	parseStatusLine(const Iterator begin, const Iterator end);
 		virtual	Method parseMethod(Iterator& begin, const Iterator end);
 		virtual Uri parseUri(Iterator& begin, const Iterator end);
