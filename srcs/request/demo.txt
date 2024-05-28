@@ -1,0 +1,20 @@
+
+/images/file.png 
+{
+	remove route part => /file.png
+	check if directory (var/www/images/file.png) =>
+	{
+		check if /file.png not ends with / =>
+		{
+			redirect to route + file + / (/images/file.png/)
+		}
+		check if has a default file =>
+		{
+
+		}
+	}
+	: 
+	{
+		read file.png => return;
+	}
+}
