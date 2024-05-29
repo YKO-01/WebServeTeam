@@ -6,7 +6,7 @@
 /*   By: hkasbaou <hkasbaou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/26 14:07:10 by hkasbaou          #+#    #+#             */
-/*   Updated: 2024/05/25 14:57:02 by hkasbaou         ###   ########.fr       */
+/*   Updated: 2024/05/28 14:45:21 by hkasbaou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,6 +35,7 @@ class Route {
         std::string                 redirect;
         std::string                 file; 
         std::string                 default_file;
+        std::string                 upload;
         // std::string                 cgi_bin;
         // std::string                 cgi_extension;
         bool                        useCGI;
@@ -50,6 +51,7 @@ class Route {
         std::string get_file();
         std::string get_default_file();
         bool get_useCGI();
+        std::string get_upload();
         // std::string get_cgi_bin();
         // std::string get_cgi_extension();
         bool get_directory_listing();
@@ -62,6 +64,7 @@ class Route {
         void set_file(std::string file);
         void set_default_file(std::string default_file);
         void set_useCGI(bool cgi);
+        void set_upload(std::string upload);
         // void set_cgi_bin(std::string cgi_bin);
         // void set_cgi_extension(std::string cgi_extension);
         void set_directory_listing(bool directory_listing);

@@ -6,7 +6,7 @@
 /*   By: hkasbaou <hkasbaou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/18 14:32:35 by hkasbaou          #+#    #+#             */
-/*   Updated: 2024/05/25 13:08:15 by hkasbaou         ###   ########.fr       */
+/*   Updated: 2024/05/28 14:45:56 by hkasbaou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,7 @@ std::string Config::get_host()
 {
     return host;
 }
+
 std::string Config::get_root()
 {
     return root;
@@ -60,6 +61,7 @@ void Config::set_root(std::string root)
 {
     this->root = root;
 }
+
 void Config::set_port(int port)
 {
     this->port = port;
@@ -86,6 +88,10 @@ void Config::set_routes(Route routes)
 }
 // --------  Route  --------
 //getters
+std::string Route::get_upload()
+{
+    return upload;
+}
 std::string Route::get_path()
 {
     return path;
@@ -120,6 +126,10 @@ bool Route::get_directory_listing()
     return directory_listing;
 }
 //setters
+void Route::set_upload(std::string upload)
+{
+    this->upload = upload;
+}
 void Route::set_path(std::string path)
 {
     this->path = path;
@@ -172,13 +182,13 @@ void Route::clear_route()
 }
 void Config::clear_server()
 {
-    host.clear();
-    port = -1;
+    this->host = "localhost";
+    this->port = 80;
     server_names.clear();
     default_server = false;
     error_pages.clear();
-    client_body_size  = 0;
-    root.clear();
+    client_body_size  = 1000000;
+    root = "/var/www/html";
     routes.clear();
 }
 

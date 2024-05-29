@@ -6,7 +6,7 @@
 /*   By: hkasbaou <hkasbaou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/26 14:07:13 by hkasbaou          #+#    #+#             */
-/*   Updated: 2024/05/25 14:56:12 by hkasbaou         ###   ########.fr       */
+/*   Updated: 2024/05/28 14:46:14 by hkasbaou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,8 +29,14 @@ void Config::display_server()
 }
 
 
-Config::Config(): port(-1), default_server(false),client_body_size(0)
-{}
+Config::Config()//: port(-1), default_server(false),client_body_size(0)
+{
+    this->port = 80;
+    this->host = "localhost";
+    this->default_server = false;
+    this->client_body_size = 1000000;
+    this->root = "/var/www/html";
+}
 
 void display(std::pair<std::string, std::vector<std::string> > pair)
 {
@@ -43,10 +49,6 @@ void display(std::pair<std::string, std::vector<std::string> > pair)
         for (size_t i = 0; i < pair.second.size(); i++)
             std::cout << pair.second[i] << std::endl;
     }
-}
-void split_router_helper()
-{
-
 }
 
 std::string remove_quots(std::string str)
@@ -137,8 +139,8 @@ vecOfvecOfPair split_router(std::vector<std::vector<std::string> > big_vec)
 // }
 void host_pars(Config &sv,std::string line)
 {
-    if(!sv.get_host().empty())
-        ft_exit("host::error agian host");
+    // if(!sv.get_host().empty())
+    //     ft_exit("host::error agian host");
     std::string info;
     info = line.substr(line.find(":") + 1);
       std::vector<std::string> resl;
@@ -168,8 +170,8 @@ void host_pars(Config &sv,std::string line)
 }	
 void port_pars(Config &sv,std::string line)
 {
-    if(sv.get_port() != -1)
-        ft_exit("port:: error agian port");
+    // if(sv.get_port() != -1)
+    //     ft_exit("port:: error agian port");
     std::string info;
     info = line.substr(line.find(":") + 1);
     std::vector<std::string> resl;
@@ -188,7 +190,6 @@ void root_pars(Config &sv,std::string line)
     info = line.substr(line.find(":") + 1);
     std::vector<std::string> resl;
     resl = split_stream(info,' ');
-    std::cout << "size::" << resl.size() << std::endl;
     if(resl.size() == 0 || resl.size() > 1)
         ft_exit("root:: error ktar mn 1");
     if(resl[0].find_first_not_of("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_-./\"") != std::string::npos)
@@ -253,7 +254,22 @@ void error_pages_pars(Config &sv,std::vector<std::string> infos)
         sv.set_error_pages(std::stoi(first_part),remove_quots(seceond_part));
     }
 }
-
+// void upload_pars(Config &sv,std::string line)
+// {
+//     std::string info;
+//     info = line.substr(line.find(":") + 1);
+//     std::vector<std::string> resl;
+//     resl = split_stream(info,' ');
+//     if(resl.size() == 0 || resl.size() > 1)
+//         ft_exit("upload:: error ktar mn 1");
+//     if(resl[0].find_first_not_of("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_-./\"") != std::string::npos)
+//         ft_exit("upload:: error alphabetic");
+//     if(get_count(resl[0],'\"',1) != 2)
+//         ft_exit("upload:: error \"");
+//     if(resl[0][0] != '\"' || resl[0][resl[0].size() - 1] != '\"')
+//         ft_exit("upload:: error \"");
+//     sv.set_upload(remove_quots(resl[0]));
+// }
 void router_pars(Config &sv,std::vector<std::string> infos)
 {
     Route route;
@@ -319,9 +335,9 @@ void router_pars(Config &sv,std::vector<std::string> infos)
         else if(infos[i].find("directory_listing:") != std::string::npos)
         {
             std::string info = trim_and_check_exist(infos[i],"router_directory_listing:: error ",0);
-            if(info != "on" && info != "off")
+            if(info != "true" && info != "false")
                 ft_exit("router_directory_listing:: error on/off");
-            if(info == "on")
+            if(info == "true")
                 route.set_directory_listing(true);
             else
                 route.set_directory_listing(false);
@@ -335,6 +351,17 @@ void router_pars(Config &sv,std::vector<std::string> infos)
                 route.set_useCGI(true);
             else
                 route.set_useCGI(false);
+        }
+        else if(infos[i].find("upload:") != std::string::npos)
+        {
+            std::string info = trim_and_check_exist(infos[i],"router_upload:: error ",1);
+            if(info.find_first_not_of("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_-./\"") != std::string::npos)
+                ft_exit("router_upload:: error alphabetic");
+            if(get_count(info,'\"',1) != 2)
+                ft_exit("router_upload:: error \"");
+            if(info[0] != '\"' || info[info.size() - 1] != '\"')
+                ft_exit("router_upload:: error \"");
+            route.set_upload(remove_quots(info));
         }
         else
             ft_exit("router::error not valid key");

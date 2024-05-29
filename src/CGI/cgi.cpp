@@ -34,14 +34,28 @@ void check_extention_file(std::string file)
         return;
     }
 }
-std::string CGI_EXEC(std::string full_path,char **env)
+std::string CGI_EXEC(std::string full_path)
 {
+    char **env;
+    env = new char *[9];
+    env[0] = (char *)"SERVER_NAME=server";
+    env[1] = (char *)"SERVER_PORT=8080";
+    env[2] = (char *)"REQUEST_METHOD=GET";
+    env[3] = (char *)"PATH_INFO=/Users/hkasbaou/Desktop/WebServeTeam/src/CGI";
+    env[4] = (char *)"SCRIPT_NAME=/test.php";
+    env[5] = (char *)"QUERY_STRING=name=value1&password=value2";
+    env[6] = (char *)"CONTENT_TYPE=text/html;";
+    env[7] = (char *)"CONTENT_LENGTH=512";
+
+    env[8] = NULL;
+
+    // /////////////////////////////
     std::string  output;
     std::string path = "./" + full_path;
     int pipefd[2];
     char *args[] = {(char *)path.c_str(), NULL};
 
-    check_extention_file(full_path);
+    // check_extention_file(full_path);
     if(full_path[0] != '/')
         path = "./" + full_path;
     else
@@ -69,8 +83,7 @@ std::string CGI_EXEC(std::string full_path,char **env)
             return 0;
         }
         close(pipefd[1]);
-        // execve(phpPath, args, env);
-        execve(args[0], args, NULL);
+        execve(args[0], args, env);
         std::cerr << "Error executing execve" << std::endl;
         exit(EXIT_FAILURE);
     }
@@ -81,24 +94,19 @@ std::string CGI_EXEC(std::string full_path,char **env)
         int bytesRead;
         while ((bytesRead = read(pipefd[0], buffer, sizeof(buffer) - 1)) > 0)
         {
-            std::cout << "byte readed :"  << bytesRead<< std::endl;
             buffer[bytesRead] = '\0';
             output += buffer;
-            // std::cout << "bytesRead: " << bytesRead << std::endl;
-            // output.insert(output.end(), buffer, buffer + bytesRead);
             memset(buffer, 0, sizeof(buffer));
         }
         close(pipefd[0]);
         int status;
         waitpid(pid, &status, 0); 
-        if(status != 0)
+        if (WIFEXITED(status) && WEXITSTATUS(status) != 0)
         {
             std::cerr << "Error: failed to execute" << std::endl;
-            return 0;
+            exit(EXIT_FAILURE);
         }
-        std::cout << "status::" << status << std::endl;
         std::string outputStr(output.begin(), output.end());
-        // std::cout << "Output:\n" << outputStr << std::endl;
     }
     std::cout << "Output::" << output << std::endl;
     return output;
@@ -110,7 +118,7 @@ int main(int ac, char **av)
         std::cerr << "Error: invalid argument" << std::endl;
         return 1;
     }
-    CGI_EXEC(av[1], NULL);
+    CGI_EXEC(av[1]);
     return 0;
 }
 
