@@ -5,6 +5,7 @@
 #include<string>
 #include<fstream>
 #include<vector>
+#include<cstddef>
 #include<sstream>
 #include "../../incs/Config.hpp"
 
@@ -18,9 +19,9 @@ std::string check_extension_file(const std::string &file)
     if (found != std::string::npos)
     {
         extension = file.substr(found + 1);
-        for (const auto& format : formats)
+        for (size_t i = 0; i < formats->size() ; i++)
         {
-            if (extension == format)
+            if (extension == formats[i])
                 return extension;
         }
     }
@@ -46,7 +47,7 @@ void exec_cpp(const std::string &path, char **env)
     else if (pid == 0)
     {
         const char* path_cpp = "/usr/bin/g++";
-        const char* args[] = { "g++", path.c_str(), "-o", "a.out", nullptr };
+        const char* args[] = { "c++", path.c_str(), "-o", "a.out", NULL };
         execve(path_cpp, (char* const*)args, env);
         perror("execve");
         exit(EXIT_FAILURE);
@@ -79,7 +80,6 @@ std::string CGI_EXEC()
 
     std::string output;
     std::string path = split_equal(env[3]) + split_equal(env[4]);
-    std::cout << "path:: " << path << std::endl;
 
     int pipefd[2];
     if (pipe(pipefd) == -1)
@@ -111,12 +111,12 @@ std::string CGI_EXEC()
         if (ext == "cpp")
         {
             exec_cpp(path, env);
-            char *args[] = { "./a.out", nullptr };
+            char *args[] = { (char *)"./a.out", NULL };
             execve(args[0], args, env);
         }
         else
         {
-            char *args[] = { (char *)path.c_str(), nullptr };
+            char *args[] = { (char *)path.c_str(), NULL };
             execve(args[0], args, env);
         }
         perror("execve");
@@ -133,26 +133,22 @@ std::string CGI_EXEC()
             output += buffer;
         }
         close(pipefd[0]);
-
         int status;
         waitpid(pid, &status, 0);
         if (WIFEXITED(status) && WEXITSTATUS(status) != 0)
         {
             std::cerr << "Error: failed to execute" << std::endl;
-            exit(EXIT_FAILURE);
+            // exit(EXIT_FAILURE);
+            return "";
         }
     }
-    std::cout << "Output::" << output << std::endl;
+    // std::cout << "Output::" << output << std::endl;
     return output;
 }
 
 int main(int ac, char **av)
 {
-    if (ac < 2)
-    {
-        std::cerr << "Error: invalid argument" << std::endl;
-        return 1;
-    }
-    CGI_EXEC();
+    std::string out = CGI_EXEC();
+    std::cout << "outp:::" << out << std::endl;
     return 0;
 }
