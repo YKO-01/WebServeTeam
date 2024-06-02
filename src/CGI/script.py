@@ -1,6 +1,6 @@
 #!/usr/bin/python 
 
-  
+print "Your first variable is:", first 
 print ("Content-type:text/html\n") 
 print ("<html>") 
 print ("<head>") 
@@ -10,4 +10,4 @@ print ("<body>")
 print ("<h2>Hello,is working in</h2>" )
   
 print ("</body>") 
-print ("</html>") 
+# print ("</html>") 
