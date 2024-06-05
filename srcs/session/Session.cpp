@@ -6,7 +6,7 @@
 /*   By: ayakoubi <ayakoubi@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/25 21:36:44 by ayakoubi          #+#    #+#             */
-/*   Updated: 2024/05/26 15:27:31 by ayakoubi         ###   ########.fr       */
+/*   Updated: 2024/06/03 10:05:18 by ayakoubi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,14 +31,24 @@ std::string Session::generateSessionID()
 {
 	srand(time(NULL) + rand());
 	std::stringstream ss;
-	for (int i = 0; i < 30; i++)
+	for (int i = 0; i < 20; i++)
 	{
 		int r = rand() % 127;
-		while(r < 32)
+		while(r < 32 && r > 122)
 			r = rand() % 127;
 		ss << char(r);
 	}
 	return (ss.str());
+}
+
+//-- Create Session ____________________________________________________________
+//==============================================================================
+std::string Session::createSession()
+{
+	std::string sessionID = generateSessionID();
+	std::time_t now = std::time(NULL);
+	setSession(sessionID, std::to_string(now));
+	return (sessionID);
 }
 
 //__ Get Path Session __________________________________________________________
@@ -75,9 +85,9 @@ std::string Session::getSession(const std::string& _sessionID)
 //==============================================================================
 void	Session::setSession(const std::string& _sessionID, const std::string& data)
 {
-	if (validSession(_sessionID) == true)
-		return ;
-	std::ofstream file(getPathSession(_sessionID));
+	std::cout << "session id: " << _sessionID << std::endl;
+	std::ofstream file(_sessionID);
+	std::cout << data << std::endl;
 	file << data;
 }
 

@@ -6,7 +6,7 @@
 /*   By: ayakoubi <ayakoubi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/15 13:37:56 by ayakoubi          #+#    #+#             */
-/*   Updated: 2024/05/26 15:30:01 by ayakoubi         ###   ########.fr       */
+/*   Updated: 2024/06/04 13:23:33 by ayakoubi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -114,17 +114,144 @@ bool TCPServer::acceptConnection(int serverSD)
 	return (true);
 }	
 
+void	TCPServer::handleTypeRequest(int sock)
+{
+	char buffer[BUFFER_SIZE];
+	int bytesNum;
+	std::string request;
+	size_t pos = 0;
+
+	while (1)
+	{
+		memset(buffer, 0, BUFFER_SIZE);
+		if ((bytesNum = recv(sock, buffer, BUFFER_SIZE - 1, 0)) == 0)
+		{
+			FD_CLR(sock, &FDs);
+			close(sock);
+			break;
+		}
+		if (bytesNum < 0)
+			break;
+		request += buffer;
+
+		pos = request.find("\r\n\r\n");
+		if (pos < request.size())
+		{
+			//pos += 4;
+			header = request.substr(0, pos);
+			body = request.substr(pos + 4, request.size());
+			std::cout << header << std::endl;
+			std::cout << body << std::endl;
+			bool isChunked = header.find("chunked") != std::string::npos;
+			if (isChunked)
+				handleChunkedRequest(sock, request);
+			else
+				handleSimpleRequest(sock, request);
+			break;
+		}
+	}
+	//if (pos >= request.size())
+	//	body = request;
+}
+
+void	TCPServer::handleChunkedRequest(int sock, std::string& request)
+{
+	(void) request;
+	char buffer[BUFFER_SIZE];
+	int n;
+
+	while (1)
+	{
+		std::string line;
+		std::string data;
+		while (1)
+		{
+			n = recv(sock, buffer, 1, 0);
+			if (n == 0)
+			{
+				FD_CLR(sock, &FDs);
+				close(sock);
+				return ;
+			}
+			if (n < 0)
+				break;
+			line += buffer[0];
+			if (line.size() >= 2 && line.find("\r\n") != std::string::npos)
+			{
+				if (line.size() > 2 && !(std::strtol(line.c_str(), NULL, 16)) && line[0] != '0')
+				{
+					data += line.substr(0, line.size() - 2);
+					line.clear();
+				}
+				else
+				{
+					line = line.substr(0, line.size() - 2);
+					break;
+				}
+			}
+		}
+		long chunkedSize = std::strtol(line.c_str(), NULL, 16);
+		if (chunkedSize == 0)
+		{
+			recv(sock, buffer, 2, 0);
+			break;
+		}
+		while (data.size() < (size_t)chunkedSize)
+		{
+			memset(buffer, 0, BUFFER_SIZE);
+			n = recv(sock, buffer, std::min(data.size() - chunkedSize, (size_t)BUFFER_SIZE - 1), 0);
+			if (n < 0)
+				break;
+			buffer[n] = 0;
+			data.append(buffer);
+		}
+		body += data;
+	}
+}
+
+void	TCPServer::handleSimpleRequest(int sock, std::string& request)
+{
+	(void) request;
+	char	buffer[BUFFER_SIZE];
+	int n;
+	std::cout << "here" << std::endl;
+
+	while (1)
+	{
+		memset(buffer, 0, BUFFER_SIZE);
+		n = recv(sock, buffer, BUFFER_SIZE - 1, 0);
+		std::cout << "buffer = > " << buffer << std::endl;
+		std::cout << n << std::endl;
+		if (n < 0)
+			break;
+		else if (n == 0)
+		{
+			std::cout << "failed " << std::strerror(errno) << std::endl;
+			FD_CLR(sock, &FDs);
+			close(sock);
+			break;
+		}
+		else
+			body.append(buffer);
+	}
+}
+
+
 // __ Read Routine _____________________________________________________________
 // =============================================================================
 int		TCPServer::readRoutine(int sock)
 {
-	char buffer[BUFFER_SIZE];
-	int bytesNum;
-	int headerStatus = 0;
-	std::string request;
+	//char buffer[BUFFER_SIZE];
+	//int bytesNum;
+	//int headerStatus = 0;
+	//std::string request;
 
-	bytesNum = 0;
-	while (1)
+	//bytesNum = 0;
+	handleTypeRequest(sock);
+	std::cout << body << std::endl;
+	std::ofstream file("file");
+	file << body;
+	/*while (1)
 	{
 		memset(buffer, 0, BUFFER_SIZE);
 		bytesNum = recv(sock, buffer, BUFFER_SIZE - 1, 0);
@@ -148,8 +275,8 @@ int		TCPServer::readRoutine(int sock)
 		}
 		if (bytesNum < BUFFER_SIZE - 1)
 			break;
-	}
-	return (bytesNum);
+	}*/
+	return (10);
 }
 
 // __ Send Routine _____________________________________________________________
@@ -162,7 +289,7 @@ void	TCPServer::sendRoutine(int sock)
     response += "<html>\n";
     response += "<body>\n";
     response += "<h2>Simple Form Example</h2>\n";
-    response += "<form action=\"/submit\" method=\"get\">\n";
+    response += "<form action=\"/submit\" method=\"post\">\n";
     response += "  <label for=\"name\">Name:</label><br>\n";
     response += "  <input type=\"text\" id=\"name\" name=\"name\"><br>\n";
     response += "  <label for=\"email\">Email:</label><br>\n";
@@ -220,10 +347,6 @@ void	TCPServer::runServer()
 					bytesNum = readRoutine(i);
 					if (bytesNum > 0)
 					{
-						std::string sessionID = _session.generateSessionID();
-						std::cout << sessionID << std::endl;
-						_session.setSession(sessionID, "name=ahmed");
-						std::cout << _session.getSession(sessionID) << std::endl;
 						sendRoutine(i);
 					}
 				}
