@@ -6,7 +6,7 @@
 /*   By: ael-mhar <ael-mhar@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/21 09:11:09 by ael-mhar          #+#    #+#             */
-/*   Updated: 2024/05/17 11:15:25 by ael-mhar         ###   ########.fr       */
+/*   Updated: 2024/06/04 13:11:40 by ael-mhar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,7 +42,7 @@ typedef enum /* States are server-oriented */
 	HTTP_TRACE,     /* TRACE command, waiting for blank line */
 	HTTP_CLOSE,     /* CLOSE command, waiting for blank line */
 	HTTP_STATUS,    /* Command complete, sending status */
-}	State;
+}				State;
 
 /*
  * HTTP method values...
@@ -59,13 +59,13 @@ typedef enum
 	DELETE,
 	CONNECT,
 	OPTIONS
-}	Method;
+}				Method;
 
 /*
  * HTTP Uri structure...
  */
 
-struct					Uri
+struct			Uri
 {
 	std::string scheme;
 	std::string host;
@@ -79,7 +79,7 @@ struct					Uri
  * HTTP version structure...
  */
 
-struct Version
+struct			Version
 {
 	uint16_t	major;
 	uint16_t	minor;
@@ -89,10 +89,11 @@ struct Version
  * HTTP keep-alive values...
  */
 
-typedef enum {
+typedef enum
+{
 	HTTP_KEEPALIVE_OFF,
 	HTTP_KEEPALIVE_ON
-}						http_keepalive_t;
+}				http_keepalive_t;
 
 /*
  * HTTP transfer encoding values...
@@ -100,9 +101,10 @@ typedef enum {
 
 typedef enum
 {
-	HTTP_ENCODE_LENGTH, /* Data is sent with Content-Length */
-	HTTP_ENCODE_CHUNKED /* Data is chunked */
-}						http_encoding_t;
+	HTTP_ENCODE_LENGTH,  /* Data is sent with Content-Length */
+	HTTP_ENCODE_CHUNKED, /* Data is chunked */
+	HTTP_ENCODE_NOT_IMPLEMENTED
+}				http_encoding_t;
 
 /*
  * HTTP authentication types...
@@ -116,14 +118,14 @@ typedef enum
 	HTTP_AUTH_MD5_SESS,    /* MD5-session authentication in use */
 	HTTP_AUTH_MD5_INT,     /* Digest authentication in use for body */
 	HTTP_AUTH_MD5_SESS_INT /* MD5-session authentication in use for body */
-}						http_auth_t;
+}				http_auth_t;
 
 /*
  * HTTP status codes...
  */
 
-	enum Status
-	{
+typedef enum
+{
 		HTTP_CONTINUE = 100,      /* Everything OK, keep going... */
 		HTTP_SWITCHING_PROTOCOLS, /* HTTP upgrade to TLS/SSL */
 
@@ -138,7 +140,7 @@ typedef enum
 
 		HTTP_MULTIPLE_CHOICES = 300, /* Multiple files match request */
 		HTTP_MOVED_PERMANENTLY,      /* Document has moved permanently */
-		HTTP_MOVED_TEMPORARILY,      /* Document has moved temporarily */
+		HTTP_FOUND,                  /* Document has moved temporarily */
 		HTTP_SEE_OTHER,              /* See this other link... */
 		HTTP_NOT_MODIFIED,           /* File not modified */
 		HTTP_USE_PROXY,              /* Must use a proxy to access this URI */
@@ -169,50 +171,14 @@ typedef enum
 		HTTP_SERVICE_UNAVAILABLE, /* Service is unavailable */
 		HTTP_GATEWAY_TIMEOUT,     /* Gateway connection timed out */
 		HTTP_NOT_SUPPORTED        /* HTTP version not supported */
-	};
+} Status;
 
 /*
  * HTTP field names...
  */
 
-/*
 typedef enum
 {
-  HTTP_FIELD_EXTRA = -1,
-  HTTP_FIELD_ACCEPT,
-  HTTP_FIELD_ACCEPT_LANGUAGE,
-  HTTP_FIELD_ACCEPT_ENCODING,
-  HTTP_FIELD_AUTHORIZATION,
-  HTTP_FIELD_CONNECTION,
-  HTTP_FIELD_CONTENT_ENCODING,
-  HTTP_FIELD_CONTENT_LANGUAGE,
-  HTTP_FIELD_CONTENT_LENGTH,
-  HTTP_FIELD_CONTENT_LOCATION,
-  HTTP_FIELD_CONTENT_MD5,
-  HTTP_FIELD_CONTENT_RANGE,
-  HTTP_FIELD_CONTENT_TYPE,
-  HTTP_FIELD_CONTENT_VERSION,
-  HTTP_FIELD_DATE,
-  HTTP_FIELD_HOST,
-  HTTP_FIELD_IF_MODIFIED_SINCE,
-  HTTP_FIELD_IF_UNMODIFIED_SINCE,
-  HTTP_FIELD_KEEP_ALIVE,
-  HTTP_FIELD_LAST_MODIFIED,
-  HTTP_FIELD_LINK,
-  HTTP_FIELD_LOCATION,
-  HTTP_FIELD_RANGE,
-  HTTP_FIELD_REFERER,
-  HTTP_FIELD_RETRY_AFTER,
-  HTTP_FIELD_SERVER,
-  HTTP_FIELD_TRANSFER_ENCODING,
-  HTTP_FIELD_UPGRADE,
-  HTTP_FIELD_USER_AGENT,
-  HTTP_FIELD_WWW_AUTHENTICATE,
-  HTTP_FIELD_MAX
-}						http_field_t;
-*/
-
-typedef enum {
 	HTTP_FIELD_EXTRA = -1,        /* field is extra */
 	HTTP_FIELD_HOST,              /* Host field (request) */
 	HTTP_FIELD_USER_AGENT,        /* User-Agent field (request) */
@@ -245,7 +211,11 @@ typedef enum {
 	HTTP_FIELD_SET_COOKIE,        /* Set-Cookie field (responce) */
 	HTTP_FIELD_WWW_AUTHENTICATE,  /* WWW-Authenticate field (authentication) */
 	HTTP_FIELD_RETRY_AFTER        /* Retry-After field (responce) */
-}						http_field_t;
+}				http_field_t;
+
+/*
+ * HTTP uri status...
+ */
 
 typedef enum http_uri_status
 {
@@ -256,65 +226,6 @@ typedef enum http_uri_status
 	HTTP_URI_STATUS_BAD_SCHEME = -2,   /* Bad scheme in URI (error) */
 	HTTP_URI_STATUS_BAD_URI = -1,      /* Bad/empty URI (error) */
 	HTTP_URI_STATUS_OK = 0,            /* URI decoded OK */
-}						http_uri_status_t;
-
-/*
- * Prototypes...
- */
-
-/*
-# define 	httpBlocking(http,b)	(http)->blocking = (b)
-extern int				httpCheck(http_t *http);
-# define 	httpClearFields(http)	memset((http)->fields, 0,
-			sizeof((http)->fields)),\
-						httpSetField((http), HTTP_FIELD_HOST, (http)->hostname)
-extern void				httpClose(http_t *http);
-extern http_t			*httpConnect(const char *host, int port);
-extern http_t	*httpConnectEncrypt(const char *host, int port,
-								http_encryption_t encrypt);
-extern int				httpDelete(http_t *http, const char *uri);
-extern int				httpEncryption(http_t *http, http_encryption_t e);
-# define 	httpError(http) ((http)->error)
-extern void				httpFlush(http_t *http);
-extern int				httpGet(http_t *http, const char *uri);
-extern char				*httpGets(char *line, int length, http_t *http);
-extern const char		*httpGetDateString(time_t t);
-extern time_t			httpGetDateTime(const char *s);
-# define 	httpGetField(http,field)	(http)->fields[field]
-extern struct hostent	*httpGetHostByName(const char *name);
-extern char	*httpGetSubField(http_t *http, http_field_t field,
-								const char *name, char *value);
-extern int				httpHead(http_t *http, const char *uri);
-extern void				httpInitialize(void);
-extern int				httpOptions(http_t *http, const char *uri);
-extern int				httpPost(http_t *http, const char *uri);
-extern int	httpPrintf(http_t *http, const char *format, ...)
-
-extern int				httpPut(http_t *http, const char *uri);
-extern int				httpRead(http_t *http, char *buffer, int length);
-extern int				httpReconnect(http_t *http);
-extern void	httpSeparate(const char *uri, char *method,
-							char *username, char *host, int *port,
-						char *resource);
-extern void	httpSetField(http_t *http, http_field_t field,
-							const char *value);
-extern const char		*httpStatus(http_status_t status);
-extern int				httpTrace(http_t *http, const char *uri);
-extern http_status_t	httpUpdate(http_t *http);
-extern int				httpWrite(http_t *http, const char *buffer, int length);
-extern char				*httpEncode64(char *out, const char *in);
-extern char				*httpDecode64(char *out, const char *in);
-extern int				httpGetLength(http_t *http);
-extern char	*httpMD5(const char *, const char *, const char *,
-						char [33]);
-extern char	*httpMD5Final(const char *, const char *, const char *,
-							char [33]);
-extern char				*httpMD5String(const md5_byte_t *, char [33]);
-
-extern void				httpClearCookie(http_t *http);
-# define httpGetCookie(http) ((http)->cookie)
-extern void				httpSetCookie(http_t *http, const char *cookie);
-extern int				httpWait(http_t *http, int msec);
-*/
+}				http_uri_status_t;
 
 #endif
