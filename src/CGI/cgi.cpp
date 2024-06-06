@@ -144,12 +144,13 @@ void exec_cpp(const std::string &path, char **env)
 // }
 std::string exec_cgi()
 {
+    std::string body = "firstname=John&lastname=Doe&email=johndoe@example.com&age=30";
     char *env[] = {
         (char *)"SERVER_NAME=server",
         (char *)"SERVER_PORT=8080",
         (char *)"REQUEST_METHOD=POST", // Change this to GET or POST as needed
         (char *)"PATH_INFO=/Users/hkasbaou/Desktop/WebServeTeam/src/CGI",
-        (char *)"SCRIPT_NAME=/script.php",
+        (char *)"SCRIPT_NAME=/script.sh",
         (char *)"QUERY_STRING=name=value1&password=value2", // Only for GET
         (char *)"CONTENT_TYPE=text/html;",
         (char *)"CONTENT_LENGTH=1", // Only for POST
@@ -210,7 +211,7 @@ std::string exec_cgi()
         close(pip_post[0]);
         if(split_equal(env[2]) == "POST")
         {
-            write(pip_post[1], "1", 1);
+            write(pip_post[1], body.c_str(), body.size());
             close(pip_post[1]);
         }
         char buffer[1024];
