@@ -6,7 +6,7 @@
 /*   By: hkasbaou <hkasbaou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/26 14:07:13 by hkasbaou          #+#    #+#             */
-/*   Updated: 2024/06/05 19:58:30 by hkasbaou         ###   ########.fr       */
+/*   Updated: 2024/06/06 14:39:55 by hkasbaou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -488,7 +488,6 @@ void	Config::parssConfigs(char **av)
         	vct.push_back(myText);
         }
     }
-    
     if (!vct.empty()) 
         big_vec.push_back(vct);
     MyReadFile.close();
