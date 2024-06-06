@@ -1,6 +1,6 @@
 #!/usr/bin/python 
 
-print "Your first variable is:", first 
+print "Your first variable is:"
 print ("Content-type:text/html\n") 
 print ("<html>") 
 print ("<head>") 
