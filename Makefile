@@ -6,7 +6,7 @@
 #    By: ayakoubi <ayakoubi@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/03/06 12:38:17 by ayakoubi          #+#    #+#              #
-#    Updated: 2024/05/26 13:09:17 by ayakoubi         ###   ########.fr        #
+#    Updated: 2024/06/05 07:52:38 by ayakoubi         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -26,7 +26,7 @@ SESDIR		=	session
 SRCMAIN		=	main
 SRCSERV		:=	TCPServer
 SRCCNFG		:=	parsing utils geter_setter
-SRCREQ		:=	HTTPParser Utils
+SRCREQ		:=	HTTPParser HTTPGet HTTPRequest HTTPResponse Utils
 SRCSESS		:=	Session
 
 OBJMAIN		:=	$(addprefix $(OBJDIR)/, $(addsuffix .o, $(SRCMAIN)))

@@ -6,7 +6,7 @@
 /*   By: ayakoubi <ayakoubi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/15 13:37:56 by ayakoubi          #+#    #+#             */
-/*   Updated: 2024/06/04 13:23:33 by ayakoubi         ###   ########.fr       */
+/*   Updated: 2024/06/07 22:48:19 by ayakoubi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -92,8 +92,9 @@ bool setNonBlocking(int sockfd) {
 
 // __ Accept Connection ________________________________________________________
 // =============================================================================
-bool TCPServer::acceptConnection(int serverSD)
+bool TCPServer::acceptConnection(int serverSD, fd_set *FDSRead)
 {
+	(void) FDSRead;
 	struct sockaddr_in conClientAdd;
 	int conSocket;
 	socklen_t clientAddLength = sizeof(conClientAdd);
@@ -112,197 +113,6 @@ bool TCPServer::acceptConnection(int serverSD)
 		fdMax = conSocket;
 	std::cout << "client with id : " << conSocket << " is connected" << std::endl;
 	return (true);
-}	
-
-void	TCPServer::handleTypeRequest(int sock)
-{
-	char buffer[BUFFER_SIZE];
-	int bytesNum;
-	std::string request;
-	size_t pos = 0;
-
-	while (1)
-	{
-		memset(buffer, 0, BUFFER_SIZE);
-		if ((bytesNum = recv(sock, buffer, BUFFER_SIZE - 1, 0)) == 0)
-		{
-			FD_CLR(sock, &FDs);
-			close(sock);
-			break;
-		}
-		if (bytesNum < 0)
-			break;
-		request += buffer;
-
-		pos = request.find("\r\n\r\n");
-		if (pos < request.size())
-		{
-			//pos += 4;
-			header = request.substr(0, pos);
-			body = request.substr(pos + 4, request.size());
-			std::cout << header << std::endl;
-			std::cout << body << std::endl;
-			bool isChunked = header.find("chunked") != std::string::npos;
-			if (isChunked)
-				handleChunkedRequest(sock, request);
-			else
-				handleSimpleRequest(sock, request);
-			break;
-		}
-	}
-	//if (pos >= request.size())
-	//	body = request;
-}
-
-void	TCPServer::handleChunkedRequest(int sock, std::string& request)
-{
-	(void) request;
-	char buffer[BUFFER_SIZE];
-	int n;
-
-	while (1)
-	{
-		std::string line;
-		std::string data;
-		while (1)
-		{
-			n = recv(sock, buffer, 1, 0);
-			if (n == 0)
-			{
-				FD_CLR(sock, &FDs);
-				close(sock);
-				return ;
-			}
-			if (n < 0)
-				break;
-			line += buffer[0];
-			if (line.size() >= 2 && line.find("\r\n") != std::string::npos)
-			{
-				if (line.size() > 2 && !(std::strtol(line.c_str(), NULL, 16)) && line[0] != '0')
-				{
-					data += line.substr(0, line.size() - 2);
-					line.clear();
-				}
-				else
-				{
-					line = line.substr(0, line.size() - 2);
-					break;
-				}
-			}
-		}
-		long chunkedSize = std::strtol(line.c_str(), NULL, 16);
-		if (chunkedSize == 0)
-		{
-			recv(sock, buffer, 2, 0);
-			break;
-		}
-		while (data.size() < (size_t)chunkedSize)
-		{
-			memset(buffer, 0, BUFFER_SIZE);
-			n = recv(sock, buffer, std::min(data.size() - chunkedSize, (size_t)BUFFER_SIZE - 1), 0);
-			if (n < 0)
-				break;
-			buffer[n] = 0;
-			data.append(buffer);
-		}
-		body += data;
-	}
-}
-
-void	TCPServer::handleSimpleRequest(int sock, std::string& request)
-{
-	(void) request;
-	char	buffer[BUFFER_SIZE];
-	int n;
-	std::cout << "here" << std::endl;
-
-	while (1)
-	{
-		memset(buffer, 0, BUFFER_SIZE);
-		n = recv(sock, buffer, BUFFER_SIZE - 1, 0);
-		std::cout << "buffer = > " << buffer << std::endl;
-		std::cout << n << std::endl;
-		if (n < 0)
-			break;
-		else if (n == 0)
-		{
-			std::cout << "failed " << std::strerror(errno) << std::endl;
-			FD_CLR(sock, &FDs);
-			close(sock);
-			break;
-		}
-		else
-			body.append(buffer);
-	}
-}
-
-
-// __ Read Routine _____________________________________________________________
-// =============================================================================
-int		TCPServer::readRoutine(int sock)
-{
-	//char buffer[BUFFER_SIZE];
-	//int bytesNum;
-	//int headerStatus = 0;
-	//std::string request;
-
-	//bytesNum = 0;
-	handleTypeRequest(sock);
-	std::cout << body << std::endl;
-	std::ofstream file("file");
-	file << body;
-	/*while (1)
-	{
-		memset(buffer, 0, BUFFER_SIZE);
-		bytesNum = recv(sock, buffer, BUFFER_SIZE - 1, 0);
-		if (bytesNum < 0)
-		{
-			FD_CLR(sock, &FDs);
-			close(sock);
-			break;
-		}
-		else if (bytesNum == 0)
-			break;
-		else if (bytesNum > 0)
-		{
-			buffer[bytesNum] = 0;
-			request = buffer;
-			chunkRequest(request, &headerStatus);
-			if (headerStatus == 1)
-			{
-				httpParser = new HTTPParser(header);
-			}
-		}
-		if (bytesNum < BUFFER_SIZE - 1)
-			break;
-	}*/
-	return (10);
-}
-
-// __ Send Routine _____________________________________________________________
-// =============================================================================
-void	TCPServer::sendRoutine(int sock)
-{
-	//chunkRequest(request);
-	//body = "HTTP/1.1 200 OK\r\n\r\n<html>\n\r<body>\n\r\rhello\n\r</body>\n</html>";
-	std::string response = "HTTP/1.1 200 OK\r\nSet-Cookie: name=ahmed\r\nContent-Type: text/html\r\n\r\n";
-    response += "<html>\n";
-    response += "<body>\n";
-    response += "<h2>Simple Form Example</h2>\n";
-    response += "<form action=\"/submit\" method=\"post\">\n";
-    response += "  <label for=\"name\">Name:</label><br>\n";
-    response += "  <input type=\"text\" id=\"name\" name=\"name\"><br>\n";
-    response += "  <label for=\"email\">Email:</label><br>\n";
-    response += "  <input type=\"text\" id=\"email\" name=\"email\"><br><br>\n";
-    response += "  <input type=\"submit\" value=\"Submit\">\n";
-    response += "</form>\n";
-    response += "</body>\n";
-    response += "</html>\n";
-	send(sock, response.c_str(), response.length(), 0);
-	header.clear();
-	body.clear();
-	FD_CLR(sock, &FDs);
-	close(sock);
 }
 
 // __ Exist Socket _____________________________________________________________
@@ -323,32 +133,36 @@ int		TCPServer::existSocket(int sock)
 // =============================================================================
 void	TCPServer::runServer()
 {
-	fd_set FDsCopy;
+	fd_set FDSRead, FDSWrite;
 	int fdNum;
 	int	i, j;
-	int bytesNum = 0;
-
+	
 	while (1)
 	{
-		FDsCopy = FDs;	
-		fdNum = select(fdMax + 1, &FDsCopy, 0, 0, 0);
+		FDSRead = FDs;
+	//	FDSWrite = FDs;
+		fdNum = select(fdMax + 1, &FDSRead, &FDSWrite, 0, 0);
 		if (fdNum >= 0)
 		{
 			for(i = 0; i < (fdMax + 1); i++)
 			{
-				if (i > 0 && FD_ISSET(i, &FDsCopy) && (j = existSocket(i)))
+				if (FD_ISSET(i, &FDSRead) && (j = existSocket(i)))
 				{
-					if (!acceptConnection(j))
+					if (!acceptConnection(j, &FDSRead))
 						continue;
 				}
-				else if (FD_ISSET(i, &FDsCopy))
+				else if (FD_ISSET(i, &FDSRead))
+					readRoutine(i, &FDSRead, &FDSWrite);
+				else if (FD_ISSET(i, &FDSWrite) && i != existSocket(i))
 				{
-					bytesNum = 0;
-					bytesNum = readRoutine(i);
-					if (bytesNum > 0)
+					if (readInfo.find(i) != readInfo.end() && readInfo[i] == 0)
 					{
-						sendRoutine(i);
+						sendRoutine(i, &FDSWrite, &FDSRead);
+						std::ofstream file("file", std::ios::binary);
+						file.write(reqInfo[i].c_str(), reqInfo[i].size());
+						reqInfo.erase(reqInfo.find(i));
 					}
+
 				}
 			}
 		}
@@ -357,44 +171,165 @@ void	TCPServer::runServer()
 		close(serverSockets[i]);
 }
 
-// __ Chunked Request __________________________________________________________
+// __ Read Routine _____________________________________________________________
 // =============================================================================
-void		TCPServer::chunkRequest(std::string request, int *headerStatus)
+void		TCPServer::readRoutine(int sock, fd_set *FDSRead, fd_set *FDSWrite)
 {
-	size_t pos;
-	pos = 0;
-
-	std::string dil = "\n\r\n";
-	if (*headerStatus == 0)
+	char buffer[BUFFER_SIZE];
+	int	bytesNum;
+	//int isChunked = -1;
+	
+	(void) FDSRead;
+	memset(buffer, 0, BUFFER_SIZE);
+	if ((bytesNum = recv(sock, buffer, BUFFER_SIZE, 0)) == 0)
 	{
-		if (!header.empty() && header[header.size() - 1] == '\n' && request[0] == '\r' && request[1] == '\n')
+		readInfo[sock] = bytesNum;
+		FD_CLR(sock, &FDs);
+		FD_SET(sock, FDSWrite);
+	}
+	if (bytesNum < 0)
+	{
+		if (errno != EWOULDBLOCK)
 		{
-			pos = 2;
-			//header += request.substr(0, pos);
-			*headerStatus = 1;
-		}
-		else if (!header.empty() && header[header.size() - 2] == '\n' && request[0] == '\n')
-		{
-			pos = 1;
-			//header += request.substr(0, pos);
-			*headerStatus = 1;
-		}
-		else
-		{
-			pos = request.find(dil);
-			if (pos < request.size())
-			{
-				header.append(request.substr(0, pos));
-				*headerStatus = 1;
-				pos += 3;
-			}
-			else
-				header.append(request);
+			FD_CLR(sock, &FDs);
+			close(sock);
 		}
 	}
-	if (*headerStatus == 1)
-		body.append(request.substr(pos, request.size()));
-	std::cout << "header :" << std::endl << header << std::endl;
-	std::cout << "body :" << std::endl << body << std::endl;
+	readInfo[sock] = bytesNum;
+	reqInfo[sock] = reqInfo[sock].append(buffer, bytesNum);
+	/*size_t pos = reqInfo[sock].find("\r\n\r\n");
+	if (pos != std::string::npos)
+	{
+		httpParser = new HTTPParser(reqInfo[sock].substr(0, pos));
+		Map mapHeaders = httpParser->getHeaders();
+		isChunked = mapHeaders.find("Transfer-Encoding") != mapHeaders.end();
+	}
+	if (isChunked)
+		handleChunkedRequest(sock);*/
+	//else if (isChunked == FALSE)
+	//	handleSimpleRequest(sock);
+	std::cout << bytesNum << std::endl;
+	if (bytesNum < BUFFER_SIZE)
+	{
+		readInfo[sock] = 0;
+		FD_CLR(sock, &FDs);
+		FD_SET(sock, FDSWrite);
+	}	
 }
 
+void	TCPServer::handleChunkedRequest(int sock)
+{
+	char buffer[BUFFER_SIZE];
+	int n;
+
+	std::string line;
+	std::string data;
+	while (1)
+	{
+		n = recv(sock, buffer, 1, 0);
+		if (n == 0)
+		{
+			FD_CLR(sock, &FDs);
+			close(sock);
+			return ;
+		}
+		if (n < 0)
+			break;
+		line += buffer[0];
+		if (line.size() >= 2 && line.find("\r\n") != std::string::npos)
+		{
+			if (line.size() > 2 && !(std::strtol(line.c_str(), NULL, 16)) && line[0] != '0')
+			{
+				data += line.substr(0, line.size() - 2);
+				line.clear();
+			}
+			else
+			{
+				line = line.substr(0, line.size() - 2);
+				break;
+			}
+		}
+	}
+	long chunkedSize = std::strtol(line.c_str(), NULL, 16);
+	if (chunkedSize == 0)
+	{
+		recv(sock, buffer, 2, 0);
+		return ;
+	}
+	while (data.size() < (size_t)chunkedSize)
+	{
+		memset(buffer, 0, BUFFER_SIZE);
+		n = recv(sock, buffer, std::min(data.size() - chunkedSize, (size_t)BUFFER_SIZE), 0);
+		if (n < 0)
+			break;
+	//	buffer[n] = 0;
+		data.append(buffer, n);
+	}
+	reqInfo[sock].append(data, data.size());
+}
+
+// __ Send Routine _____________________________________________________________
+// =============================================================================
+void	TCPServer::sendRoutine(int sock, fd_set *FDSWrite, fd_set *FDSRead)
+{
+	(void) FDSRead;
+   std::string html_body;
+    html_body += "<html>\n";
+    html_body += "<body>\n";
+    html_body += "<h2>Simple Form Example</h2>\n";
+    html_body += "<form action=\"/submit\" method=\"post\">\n";
+    html_body += "  <label for=\"name\">Name:</label><br>\n";
+    html_body += "  <input type=\"text\" id=\"name\" name=\"name\"><br>\n";
+    html_body += "  <label for=\"email\">Email:</label><br>\n";
+    html_body += "  <input type=\"text\" id=\"email\" name=\"email\"><br><br>\n";
+    html_body += "  <input type=\"submit\" value=\"Submit\">\n";
+	html_body += "<input type=\"file\" id=\"avatar\" name=\"avatar\" accept=\"image/png, image/jpeg\" />\n";
+	html_body += "</form>\n";
+    html_body += "</body>\n";
+    html_body += "</html>\n";
+
+	size_t content_length = html_body.size();
+
+	 std::ostringstream response;
+    response << "HTTP/1.1 200 OK\r\n";
+    response << "Set-Cookie: name=ahmed\r\n";
+    response << "Content-Type: text/html\r\n";
+    response << "Content-Length: " << content_length << "\r\n";
+    response << "\r\n";
+	response << html_body;
+
+	std::string str = response.str();
+	int bytesSend = 0;
+	
+	if (writeInfo.find(sock) != writeInfo.end() && writeInfo[sock] < str.size())
+		str = str.substr(writeInfo[sock], str.size());
+	size_t size = str.size();
+	if (size > BUFFER_SIZE)
+		size = BUFFER_SIZE;
+	if ((bytesSend = send(sock, str.c_str(), size, 0)) < 0)
+	{
+		std::cout << std::strerror(errno) << std::endl;
+	//	exit(1);
+	}
+	if (writeInfo.find(sock) != writeInfo.end())
+	   	writeInfo[sock] += bytesSend;
+	else
+	   	writeInfo[sock] = bytesSend;
+
+	std::cout << "send" << bytesSend << std::endl;
+//	FD_CLR(sock, FDSWrite);
+	//FD_CLR(sock, FDSRead);
+	//FD_CLR(sock, &FDs);
+	//close(sock);
+	//readInfo.erase(readInfo.find(sock));
+	if (bytesSend == 0 || bytesSend < BUFFER_SIZE)
+	{
+		std::cout << "i am here" << std::endl;
+		writeInfo.erase(writeInfo.find(sock));
+		FD_CLR(sock, FDSWrite);
+		FD_CLR(sock, &FDs);
+		close(sock);
+	}
+//	if (httpParser->getConnectionType() == HTTP_KEEPALIVE_OFF)
+		//close(sock);
+}

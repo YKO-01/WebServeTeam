@@ -3,38 +3,53 @@
 /*                                                        :::      ::::::::   */
 /*   HTTPParser.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ayakoubi <ayakoubi@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ael-mhar <ael-mhar@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/11 10:00:28 by ael-mhar          #+#    #+#             */
-/*   Updated: 2024/05/25 10:52:22 by ayakoubi         ###   ########.fr       */
+/*   Updated: 2024/06/05 22:08:41 by ayakoubi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "HTTPParser.hpp"
 
-HTTPParser::HTTPParser(std::string& request)
+HTTPParser::HTTPParser(std::string request)
 {
 	Header header;
 	Iterator it;
-	Iterator ite;
 
-	ite = Utils::findToken(request.begin(), request.end(), "\r\n", false);
-	status = parseStatusLine(request.begin(), ite);
+	it = Utils::findToken(request.begin(), request.end(), "\r\n", false);
+	status = parseStatusLine(request.begin(), it);
 	if (status != HTTP_CONTINUE)
 		return ;
-	while (ite != request.end())
+	status = parseHeaders(it, request.end());
+}
+
+Status	HTTPParser::parseHeaders(Iterator& begin, const Iterator end)
+{
+	Iterator it;
+	Header header;
+	Status status;
+
+	status = HTTP_CONTINUE;
+	while (begin != end)
 	{
-		it = ite + 2;
-		if (it == request.end())
+		it = begin + 2;
+		if (it == end)
 			break ;
-		ite = Utils::findToken(it, request.end(), "\r\n", false);
-		if (it == ite)
+		begin = Utils::findToken(it, end, "\r\n", false);
+		if (it == begin)
 			break ;
-		header = parseHeaderField(it, ite);
-		if (status != HTTP_CONTINUE)
+		header = parseHeaderField(it, begin);
+		if (header.first.empty())
+		{
+			status = HTTP_BAD_REQUEST;
 			break ;
+		}
 		headers[header.first] = header.second;
 	}
+	if (getHeader("host").empty())
+		status = HTTP_BAD_REQUEST;
+	return (status);
 }
 
 Status	HTTPParser::parseStatusLine(const Iterator begin, const Iterator end)
@@ -77,22 +92,10 @@ Method	HTTPParser::parseMethod(Iterator& begin, const Iterator end)
 		throw HTTPBadMethod();
 	if (!method.compare("GET"))
 		return (GET);
-	else if (!method.compare("PUT"))
-		return (PUT);
 	else if (!method.compare("POST"))
 		return (POST);
-	else if (!method.compare("HEAD"))
-		return (HEAD);
-	else if (!method.compare("TRACE"))
-		return (TRACE);
-	else if (!method.compare("PATCH"))
-		return (PATCH);
 	else if (!method.compare("DELETE"))
 		return (DELETE);
-	else if (!method.compare("CONNECT"))
-		return (CONNECT);
-	else if (!method.compare("OPTIONS"))
-		return (OPTIONS);
 	else
 		throw HTTPMethodNotAllowed();
 }
@@ -217,15 +220,8 @@ Header	HTTPParser::parseHeaderField(const Iterator begin, const Iterator end)
 	Header header;
 	Iterator it;
 
-	it = Utils::findToken(begin, end, ":");
-	try
-	{
-		header.first = parseHeaderFieldName(begin, it);
-	} catch (const HTTPBadHeader& e)
-	{
-		status = HTTP_BAD_REQUEST;
-		header.first = "";
-	}
+	it = Utils::findToken(begin, end, ":", false);
+	header.first = parseHeaderFieldName(begin, it);
 	if (it != end)
 		header.second = parseHeaderFieldValue(it + 1, end);
 	return (header);
@@ -241,7 +237,7 @@ String	HTTPParser::parseHeaderFieldName(const Iterator begin, const Iterator end
 	ite = Utils::rtrimString(begin, end, " \t");
 	name = String(it, ite);
 	if (!Utils::isValidHeader(name))
-		throw HTTPBadHeader();
+		name.clear();
 	std::transform(name.begin(), name.end(), name.begin(), ::tolower);
 	return (name);
 }
@@ -256,61 +252,6 @@ String	HTTPParser::parseHeaderFieldValue(const Iterator begin, const Iterator en
 	ite = Utils::rtrimString(begin, end, " \t");
 	value = String(it, ite);
 	return (value);
-}
-
-const char	*HTTPParser::HTTPBadMethod::what() const throw()
-{
-	return ("http bad method");
-}
-
-const char	*HTTPParser::HTTPMethodNotAllowed::what() const throw()
-{
-	return ("http method not allowed");
-}
-
-const char	*HTTPParser::HTTPBadVersion::what() const throw()
-{
-	return ("http bad version");
-}
-
-const char	*HTTPParser::HTTPBadUri::what() const throw()
-{
-	return ("http bad uri");
-}
-
-const char	*HTTPParser::HTTPUriOverflow::what() const throw()
-{
-	return ("http uri too long");
-}
-
-const char	*HTTPParser::HTTPUriBadScheme::what() const throw()
-{
-	return ("http bad uri host");
-}
-
-const char	*HTTPParser::HTTPUriBadHost::what() const throw()
-{
-	return ("http bad uri host");
-}
-
-const char	*HTTPParser::HTTPUriBadPort::what() const throw()
-{
-	return ("http bad uri port");
-}
-
-const char	*HTTPParser::HTTPUriBadResource::what() const throw()
-{
-	return ("http bad uri resource");
-}
-
-const char	*HTTPParser::HTTPVersionNotSupported::what() const throw()
-{
-	return ("http version not supported");
-}
-
-const char	*HTTPParser::HTTPBadHeader::what() const throw()
-{
-	return ("http bad header");
 }
 
 void	HTTPParser::destroyParsedData()
@@ -347,6 +288,90 @@ Map	HTTPParser::getHeaders(void) const
 Status	HTTPParser::getStatus(void) const
 {
 	return (status);
+}
+
+String	HTTPParser::getHeader(String header)
+{
+	Map::iterator	it;
+
+	it = headers.find(header);
+	if (it != headers.end())
+		return (it->second);
+	return ("");
+}
+
+void	HTTPParser::setConfig(Config config)
+{
+//	std::cout << config->get_port << std::endl;
+	(void) config;
+}
+
+
+http_keepalive_t	HTTPParser::getConnectionType(void)
+{
+	//if (!getHeader("connection").compare("close"))
+	//	return (HTTP_KEEPALIVE_OFF);
+	return (HTTP_KEEPALIVE_ON);
+}
+
+http_encoding_t	HTTPParser::getEncodingType(void)
+{
+	return (encoding);
+}
+
+const char	*HTTPParser::HTTPBadMethod::what() const throw()
+{
+	return ("Bad Method");
+}
+
+const char	*HTTPParser::HTTPMethodNotAllowed::what() const throw()
+{
+	return ("Method Not Allowed");
+}
+
+const char	*HTTPParser::HTTPBadVersion::what() const throw()
+{
+	return ("Bad Version");
+}
+
+const char	*HTTPParser::HTTPBadUri::what() const throw()
+{
+	return ("Bad Uri");
+}
+
+const char	*HTTPParser::HTTPUriOverflow::what() const throw()
+{
+	return ("Uri Too Long");
+}
+
+const char	*HTTPParser::HTTPUriBadScheme::what() const throw()
+{
+	return ("Uri Bad Scheme");
+}
+
+const char	*HTTPParser::HTTPUriBadHost::what() const throw()
+{
+	return ("Uri Bad Host");
+}
+
+const char	*HTTPParser::HTTPUriBadPort::what() const throw()
+{
+	return ("Uri Bad Port");
+}
+
+const char	*HTTPParser::HTTPUriBadResource::what() const throw()
+{
+	return ("Uri Bad Resource");
+}
+
+const char	*HTTPParser::HTTPVersionNotSupported::what() const throw()
+{
+	return ("Version Not Supported");
+}
+
+const char	*HTTPParser::HTTPBadHeader::what() const throw()
+{
+	return ("Bad Header");
 }
 
 HTTPParser::~HTTPParser()

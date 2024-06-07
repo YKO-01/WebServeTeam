@@ -6,7 +6,7 @@
 /*   By: ael-mhar <ael-mhar@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/12 08:12:16 by ael-mhar          #+#    #+#             */
-/*   Updated: 2024/05/24 19:00:49 by ael-mhar         ###   ########.fr       */
+/*   Updated: 2024/05/27 10:49:11 by ael-mhar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -166,10 +166,9 @@ bool    Utils::isDirectory(String path)
 
 bool	Utils::matchPathToRoute(String path, String route)
 {
-	route.erase(std::remove(route.begin(), route.end(), '\"'), route.end());
 	if (!path.compare(0, route.length(), route))
 	{
-		if (path.length() != route.length() && path[route.length()] != '/')
+		if (path.length() > route.length() && path[route.length()] != '/' && route != "/")
 			return (false);
 		return (true);
 	}

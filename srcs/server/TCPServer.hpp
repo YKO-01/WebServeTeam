@@ -6,7 +6,7 @@
 /*   By: ayakoubi <ayakoubi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/28 19:37:27 by ayakoubi          #+#    #+#             */
-/*   Updated: 2024/06/04 12:57:24 by ayakoubi         ###   ########.fr       */
+/*   Updated: 2024/06/07 22:48:22 by ayakoubi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,7 @@
 #include "../srcs/config/Config.hpp"
 #include "../srcs/request/HTTPParser.hpp"
 
-#define BUFFER_SIZE 1024
+#define BUFFER_SIZE 40
 #define MAX_CONNECTION 10
 #define SERVERPORT  5555
 
@@ -41,22 +41,27 @@ class TCPServer
 		std::string body;
 		std::vector<Config> configs;
 		HTTPParser	*httpParser;
+		std::map<int, int> readInfo;
+		std::map<int, size_t> writeInfo;
+		std::map<int, std::string> reqInfo;
+	//	std::vector<char> data;
 	public:
 		TCPServer();
 		TCPServer(Config &configs);
 		~TCPServer();
 		bool	initSocket();
 		void	runServer();
-		bool	acceptConnection(int serverSD);
+		bool	acceptConnection(int serverSD, fd_set *FDSRead);
 
-		int		readRoutine(int sock);
-		void	sendRoutine(int sock);
+		void	readRoutine(int sock, fd_set *FDSRead, fd_set *FDSWrite);
+		void	sendRoutine(int sock, fd_set *FDSWrite, fd_set *FDSRead);
 
 		void	handleTypeRequest(int sock);
-		void	handleChunkedRequest(int sock, std::string& request);
+		void	handleChunkedRequest(int sock);
 		void	handleSimpleRequest(int sock, std::string& request);
 
 		void	chunkRequest(std::string request, int *headerStatus);
+		Config	getConfigOfUsingSocket(int sock);
 
 		void	fillVectorConfigs();
 		int		existSocket(int sock);
