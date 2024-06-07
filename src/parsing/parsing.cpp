@@ -6,7 +6,7 @@
 /*   By: hkasbaou <hkasbaou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/26 14:07:13 by hkasbaou          #+#    #+#             */
-/*   Updated: 2024/06/06 14:39:55 by hkasbaou         ###   ########.fr       */
+/*   Updated: 2024/06/07 17:35:07 by hkasbaou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -116,7 +116,7 @@ vecOfvecOfPair split_router(std::vector<std::vector<std::string> > big_vec)
                     pair.second.push_back(big_vec[i][j]);
                     j++;
                 }
-                if(tabcount < get_count(big_vec[i][j],'\t',0))
+                if(tabcount < get_count(big_vec [i][j],'\t',0))
                         ft_exit("router::error tab");
                 if(tabcount == get_count(big_vec[i][j],'\t',0))
                     pair.second.push_back(big_vec[i][j++]);
@@ -132,11 +132,6 @@ vecOfvecOfPair split_router(std::vector<std::vector<std::string> > big_vec)
     return routerInfoSegments;
 }
 
-
-// void check_errors(std::string str,std::string error)
-// {
-    
-// }
 void host_pars(Config &sv,std::string line)
 {
     // if(!sv.get_host().empty())
@@ -174,7 +169,7 @@ void port_pars(Config &sv,std::string line)
     //     ft_exit("port:: error agian port");
     std::string info;
     info = line.substr(line.find(":") + 1);
-    std::vector<std::string> resl;
+    std::vector<std::   string> resl;
     resl = split_stream(info,' ');
     if(resl.size() == 0 || resl.size() > 1)
         ft_exit("port:: error ktar mn 1");
@@ -393,6 +388,7 @@ void check_root_in_router_exist(Config &serv)
     Route new_route;
     new_route.set_path("/");
     new_route.set_default_file("index.html");
+    new_route.set_methods(GET);
     new_route.set_directory(serv.get_root());
     new_route.set_useCGI(false);
 
@@ -462,10 +458,14 @@ void	Config::parssConfigs(char **av)
 {
     std::string myText;
     std::ifstream MyReadFile(av[1]);
+    
     std::vector<std::string > vct;
     std::vector<std::vector<std::string> > big_vec;
     std::pair<std::string, std::string> pair;
     bool inServerBlock = false;
+    if (!MyReadFile.is_open())
+        ft_exit("error No such file ");
+    int i = 0;
     while (getline (MyReadFile, myText)) 
     {
         if(myText.empty() || isAllWhitespace(myText) || trim(myText).at(0) == '#')
@@ -487,14 +487,16 @@ void	Config::parssConfigs(char **av)
                     ft_exit("error tabs or space or :");
         	vct.push_back(myText);
         }
+        i++;
     }
     if (!vct.empty()) 
         big_vec.push_back(vct);
+    if(big_vec.size() == 0)
+        ft_exit("error::no server");            
     MyReadFile.close();
     vecOfvecOfPair server_router_info = split_router(big_vec);
     Config servers;
     all_info = insert_data_to_server(server_router_info, servers);
-    // display_info(all_info);
 }
 
 int main(int argc, char const *argv[])
