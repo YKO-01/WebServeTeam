@@ -6,7 +6,7 @@
 /*   By: hkasbaou <hkasbaou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/26 14:07:13 by hkasbaou          #+#    #+#             */
-/*   Updated: 2024/06/07 17:35:07 by hkasbaou         ###   ########.fr       */
+/*   Updated: 2024/06/07 20:36:36 by hkasbaou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -497,6 +497,7 @@ void	Config::parssConfigs(char **av)
     vecOfvecOfPair server_router_info = split_router(big_vec);
     Config servers;
     all_info = insert_data_to_server(server_router_info, servers);
+    display_info(all_info);
 }
 
 int main(int argc, char const *argv[])
