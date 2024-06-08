@@ -6,7 +6,7 @@
 /*   By: ayakoubi <ayakoubi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/28 19:37:27 by ayakoubi          #+#    #+#             */
-/*   Updated: 2024/06/07 22:48:22 by ayakoubi         ###   ########.fr       */
+/*   Updated: 2024/06/08 08:03:21 by ayakoubi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,7 @@
 #include "../../incs/webserv.h"
 #include "../srcs/config/Config.hpp"
 #include "../srcs/request/HTTPParser.hpp"
+#include "TCPUtils.hpp"
 
 #define BUFFER_SIZE 40
 #define MAX_CONNECTION 10
@@ -44,6 +45,8 @@ class TCPServer
 		std::map<int, int> readInfo;
 		std::map<int, size_t> writeInfo;
 		std::map<int, std::string> reqInfo;
+		std::map<int, int> isChunked;
+		Map mapHeaders;
 	//	std::vector<char> data;
 	public:
 		TCPServer();

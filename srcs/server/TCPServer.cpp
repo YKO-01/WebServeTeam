@@ -6,7 +6,7 @@
 /*   By: ayakoubi <ayakoubi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/15 13:37:56 by ayakoubi          #+#    #+#             */
-/*   Updated: 2024/06/07 22:48:19 by ayakoubi         ###   ########.fr       */
+/*   Updated: 2024/06/08 14:37:47 by ayakoubi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -111,6 +111,7 @@ bool TCPServer::acceptConnection(int serverSD, fd_set *FDSRead)
 	FD_SET(conSocket, &FDs);
 	if (fdMax < conSocket)
 		fdMax = conSocket;
+	isChunked[conSocket] = 0;
 	std::cout << "client with id : " << conSocket << " is connected" << std::endl;
 	return (true);
 }
@@ -176,36 +177,45 @@ void	TCPServer::runServer()
 void		TCPServer::readRoutine(int sock, fd_set *FDSRead, fd_set *FDSWrite)
 {
 	char buffer[BUFFER_SIZE];
-	int	bytesNum;
-	//int isChunked = -1;
+	int	bytesNum = 0;
 	
 	(void) FDSRead;
-	memset(buffer, 0, BUFFER_SIZE);
-	if ((bytesNum = recv(sock, buffer, BUFFER_SIZE, 0)) == 0)
+	if (!isChunked[sock])
 	{
-		readInfo[sock] = bytesNum;
-		FD_CLR(sock, &FDs);
-		FD_SET(sock, FDSWrite);
-	}
-	if (bytesNum < 0)
-	{
-		if (errno != EWOULDBLOCK)
+		memset(buffer, 0, BUFFER_SIZE);
+		if ((bytesNum = recv(sock, buffer, BUFFER_SIZE, 0)) == 0)
 		{
+			readInfo[sock] = bytesNum;
 			FD_CLR(sock, &FDs);
-			close(sock);
+			FD_SET(sock, FDSWrite);
 		}
+		if (bytesNum < 0)
+		{
+			if (errno != EWOULDBLOCK)
+			{
+				FD_CLR(sock, &FDs);
+				close(sock);
+			}
+		}
+		readInfo[sock] = bytesNum;
+		reqInfo[sock] = reqInfo[sock].append(buffer, bytesNum);
+		size_t pos = reqInfo[sock].find("\r\n\r\n");
+		if (pos != std::string::npos)
+		{
+			std::cout << "hello" << std::endl;
+			httpParser = new HTTPParser(reqInfo[sock].substr(0, pos));
+			reqInfo[sock] = reqInfo[sock].substr(pos + 4, reqInfo[sock].size());
+			mapHeaders = httpParser->getHeaders();
+			isChunked[sock] = mapHeaders.find("transfer-encoding") != mapHeaders.end();
+		}	
 	}
-	readInfo[sock] = bytesNum;
-	reqInfo[sock] = reqInfo[sock].append(buffer, bytesNum);
-	/*size_t pos = reqInfo[sock].find("\r\n\r\n");
-	if (pos != std::string::npos)
+	//std::cout << "chunked: " << isChunked[sock] << std::endl;
+	if (isChunked[sock])
 	{
-		httpParser = new HTTPParser(reqInfo[sock].substr(0, pos));
-		Map mapHeaders = httpParser->getHeaders();
-		isChunked = mapHeaders.find("Transfer-Encoding") != mapHeaders.end();
+		std::cout << "enter this " << std::endl;
+		handleChunkedRequest(sock);
+		return ;
 	}
-	if (isChunked)
-		handleChunkedRequest(sock);*/
 	//else if (isChunked == FALSE)
 	//	handleSimpleRequest(sock);
 	std::cout << bytesNum << std::endl;
@@ -221,39 +231,55 @@ void	TCPServer::handleChunkedRequest(int sock)
 {
 	char buffer[BUFFER_SIZE];
 	int n;
-
 	std::string line;
 	std::string data;
-	while (1)
+	std::pair<long, std::string> pairChunked;
+
+	pairChunked = TCPUtils::parseChunkedBody(reqInfo[sock]);
+	if (pairChunked.first < 0)
 	{
-		n = recv(sock, buffer, 1, 0);
-		if (n == 0)
+		reqInfo[sock] = pairChunked.second();
+		return ;
+	}
+	reqInfo[sockt] = reqInfo[sock].append(pairChunked.second, pairChunked.second.size());
+	if (pairChunked.first < pair
+	if (pairChunked.first != pairChunked.second.size())
+	{
+		while (1)
 		{
-			FD_CLR(sock, &FDs);
-			close(sock);
-			return ;
-		}
-		if (n < 0)
-			break;
-		line += buffer[0];
-		if (line.size() >= 2 && line.find("\r\n") != std::string::npos)
-		{
-			if (line.size() > 2 && !(std::strtol(line.c_str(), NULL, 16)) && line[0] != '0')
+			n = recv(sock, buffer, 1, 0);
+			std::cout << "n: " << n << std::endl;
+			if (n == 0)
 			{
-				data += line.substr(0, line.size() - 2);
-				line.clear();
+				FD_CLR(sock, &FDs);
+				close(sock);
+				return ;
 			}
-			else
-			{
-				line = line.substr(0, line.size() - 2);
+			if (n < 0)
 				break;
+			line += buffer[0];
+			if (line.size() >= 2 && line.find("\r\n") != std::string::npos)
+			{
+				if (line.size() > 2 && !(std::strtol(line.c_str(), NULL, 16)) && line[0] != '0')
+				{
+					data += line.substr(0, line.size() - 2);
+					line.clear();
+				}
+				else
+				{
+					line = line.substr(0, line.size() - 2);
+					break;
+				}
 			}
 		}
 	}
-	long chunkedSize = std::strtol(line.c_str(), NULL, 16);
+	long chunkedSize = TCPUtils::hexToDecimal(line);
 	if (chunkedSize == 0)
 	{
 		recv(sock, buffer, 2, 0);
+		std::cout << "out" << chunkedSize << std::endl;
+		reqInfo[sock].append(data, data.size());
+		std::cout << reqInfo[sock] << std::endl;
 		return ;
 	}
 	while (data.size() < (size_t)chunkedSize)
@@ -265,7 +291,10 @@ void	TCPServer::handleChunkedRequest(int sock)
 	//	buffer[n] = 0;
 		data.append(buffer, n);
 	}
+	std::cout << "out" << std::endl;
 	reqInfo[sock].append(data, data.size());
+	std::cout << reqInfo[sock] << std::endl;
+	return n;
 }
 
 // __ Send Routine _____________________________________________________________

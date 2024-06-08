@@ -1,21 +1,30 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Utils.cpp                                          :+:      :+:    :+:   */
+/*   Client.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: ayakoubi <ayakoubi@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/06/06 08:16:52 by ayakoubi          #+#    #+#             */
-/*   Updated: 2024/06/06 08:23:16 by ayakoubi         ###   ########.fr       */
+/*   Created: 2024/06/08 07:43:16 by ayakoubi          #+#    #+#             */
+/*   Updated: 2024/06/08 07:48:33 by ayakoubi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "Utils.hpp"
+#ifndef CLIENT_HPP
+#define CLIENT_HPP
 
-std::vector<char>	Utils::storeDataInVec(char *buffer)
+#include <iostream>
+
+class Client
 {
-	std::vector<char> vec;
+	public:
+		std::string request;
+		int readNum;
+		int sendNum;
+		int is_chunked;
+	public:
+		Client();
+		~Client();
+};
 
-	vec.insert(vec.end(), buffer, buffer + strlen(buffer));
-	return (vec);
-}
+#endif

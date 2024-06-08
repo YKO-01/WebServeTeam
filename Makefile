@@ -6,7 +6,7 @@
 #    By: ayakoubi <ayakoubi@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/03/06 12:38:17 by ayakoubi          #+#    #+#              #
-#    Updated: 2024/06/05 07:52:38 by ayakoubi         ###   ########.fr        #
+#    Updated: 2024/06/08 07:16:32 by ayakoubi         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -24,7 +24,7 @@ REQDIR		=	request
 SESDIR		=	session
 
 SRCMAIN		=	main
-SRCSERV		:=	TCPServer
+SRCSERV		:=	TCPServer TCPUtils
 SRCCNFG		:=	parsing utils geter_setter
 SRCREQ		:=	HTTPParser HTTPGet HTTPRequest HTTPResponse Utils
 SRCSESS		:=	Session
