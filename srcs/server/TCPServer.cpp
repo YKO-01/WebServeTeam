@@ -6,7 +6,7 @@
 /*   By: ayakoubi <ayakoubi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/15 13:37:56 by ayakoubi          #+#    #+#             */
-/*   Updated: 2024/06/08 14:37:47 by ayakoubi         ###   ########.fr       */
+/*   Updated: 2024/06/09 13:17:54 by ayakoubi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,6 +35,7 @@ TCPServer::~TCPServer()
 bool	TCPServer::initSocket()
 {
 	size_t i = -1;
+	int count = 0;
 	while (++i < configs.size())
 	{
 		// create a socket for the server
@@ -42,7 +43,7 @@ bool	TCPServer::initSocket()
 		if (serverSD < 0)
 		{
 			std::cout << "failed to creation a socket" << std::endl;
-			return (false);
+			continue;
 		}
 		// set socket option
 		int	option = TRUE; 	
@@ -50,26 +51,30 @@ bool	TCPServer::initSocket()
 		// bind this socket to a specific port number
 		struct sockaddr_in serverAddress;
 		serverAddress.sin_family = AF_INET;
-		serverAddress.sin_addr.s_addr = INADDR_ANY;
-	//	std::cout << configs[i].get_port() << std::endl;
+		serverAddress.sin_addr.s_addr = htonl(TCPUtils::stringToLong(configs[i].get_host()));
 		serverAddress.sin_port = htons(configs[i].get_port());
 		
 		if (bind(serverSD, (struct sockaddr*)&serverAddress, sizeof(serverAddress)) < 0)
 		{
 			std::cout << "binding failed" << std::endl;
-			return (false);
+			close(serverSD);
+			continue ;
 		}
 		// listen to the client connection request
 		if (listen(serverSD, SOMAXCONN) < 0)
 		{
 			std::cout << "failed to listening" << std::endl;
-			return (false);
+			close(serverSD);
+			continue ;
 		}
 		FD_SET(serverSD, &FDs);
     	fdMax = serverSD;
 		serverSockets.push_back(serverSD);
+		count++;
 	}
-	return (true);
+	if (count)
+		return (true);
+	return (false);
 }
 
 // __ Set Non Blocking _________________________________________________________
@@ -178,7 +183,7 @@ void		TCPServer::readRoutine(int sock, fd_set *FDSRead, fd_set *FDSWrite)
 {
 	char buffer[BUFFER_SIZE];
 	int	bytesNum = 0;
-	
+
 	(void) FDSRead;
 	if (!isChunked[sock])
 	{
@@ -202,23 +207,18 @@ void		TCPServer::readRoutine(int sock, fd_set *FDSRead, fd_set *FDSWrite)
 		size_t pos = reqInfo[sock].find("\r\n\r\n");
 		if (pos != std::string::npos)
 		{
-			std::cout << "hello" << std::endl;
 			httpParser = new HTTPParser(reqInfo[sock].substr(0, pos));
-			reqInfo[sock] = reqInfo[sock].substr(pos + 4, reqInfo[sock].size());
+			mapRest[sock] = reqInfo[sock].substr(pos + 4, reqInfo[sock].size());
 			mapHeaders = httpParser->getHeaders();
 			isChunked[sock] = mapHeaders.find("transfer-encoding") != mapHeaders.end();
 		}	
 	}
-	//std::cout << "chunked: " << isChunked[sock] << std::endl;
 	if (isChunked[sock])
 	{
 		std::cout << "enter this " << std::endl;
-		handleChunkedRequest(sock);
+		handleChunkedRequest(sock, FDSWrite);
 		return ;
 	}
-	//else if (isChunked == FALSE)
-	//	handleSimpleRequest(sock);
-	std::cout << bytesNum << std::endl;
 	if (bytesNum < BUFFER_SIZE)
 	{
 		readInfo[sock] = 0;
@@ -227,28 +227,25 @@ void		TCPServer::readRoutine(int sock, fd_set *FDSRead, fd_set *FDSWrite)
 	}	
 }
 
-void	TCPServer::handleChunkedRequest(int sock)
+void	TCPServer::handleChunkedRequest(int sock, fd_set *FDSWrite)
 {
 	char buffer[BUFFER_SIZE];
 	int n;
 	std::string line;
 	std::string data;
-	std::pair<long, std::string> pairChunked;
+	std::pair<size_t, std::string> pairChunked;
 
-	pairChunked = TCPUtils::parseChunkedBody(reqInfo[sock]);
-	if (pairChunked.first < 0)
+	pairChunked.first = 0;
+	if (mapRest[sock].size())
 	{
-		reqInfo[sock] = pairChunked.second();
-		return ;
+		pairChunked = TCPUtils::parseChunkedBody(mapRest[sock]);
+		reqInfo[sock].append(pairChunked.second, pairChunked.second.size());
 	}
-	reqInfo[sockt] = reqInfo[sock].append(pairChunked.second, pairChunked.second.size());
-	if (pairChunked.first < pair
-	if (pairChunked.first != pairChunked.second.size())
+	if (!pairChunked.first)
 	{
 		while (1)
 		{
 			n = recv(sock, buffer, 1, 0);
-			std::cout << "n: " << n << std::endl;
 			if (n == 0)
 			{
 				FD_CLR(sock, &FDs);
@@ -260,41 +257,27 @@ void	TCPServer::handleChunkedRequest(int sock)
 			line += buffer[0];
 			if (line.size() >= 2 && line.find("\r\n") != std::string::npos)
 			{
-				if (line.size() > 2 && !(std::strtol(line.c_str(), NULL, 16)) && line[0] != '0')
-				{
-					data += line.substr(0, line.size() - 2);
-					line.clear();
-				}
-				else
-				{
-					line = line.substr(0, line.size() - 2);
-					break;
-				}
+				line = line.substr(0, line.size() - 2);
+				break;
 			}
 		}
+		pairChunked.first = TCPUtils::hexToDecimal(line); 
+		if (pairChunked.first == 0)
+		{
+			recv(sock, buffer, 2, 0);
+			FD_CLR(sock, &FDs);
+			FD_SET(sock, FDSWrite);
+			return ;
+		}
 	}
-	long chunkedSize = TCPUtils::hexToDecimal(line);
-	if (chunkedSize == 0)
+	n = recv(sock, buffer, std::min(pairChunked.first, (size_t)BUFFER_SIZE), 0);
+	if (pairChunked.first > BUFFER_SIZE)
 	{
-		recv(sock, buffer, 2, 0);
-		std::cout << "out" << chunkedSize << std::endl;
-		reqInfo[sock].append(data, data.size());
-		std::cout << reqInfo[sock] << std::endl;
+		mapRest[sock] = buffer;
 		return ;
 	}
-	while (data.size() < (size_t)chunkedSize)
-	{
-		memset(buffer, 0, BUFFER_SIZE);
-		n = recv(sock, buffer, std::min(data.size() - chunkedSize, (size_t)BUFFER_SIZE), 0);
-		if (n < 0)
-			break;
-	//	buffer[n] = 0;
-		data.append(buffer, n);
-	}
-	std::cout << "out" << std::endl;
-	reqInfo[sock].append(data, data.size());
-	std::cout << reqInfo[sock] << std::endl;
-	return n;
+	reqInfo[sock].append(buffer, n);
+	mapRest.erase(mapRest.find(sock));
 }
 
 // __ Send Routine _____________________________________________________________
@@ -338,27 +321,22 @@ void	TCPServer::sendRoutine(int sock, fd_set *FDSWrite, fd_set *FDSRead)
 	if ((bytesSend = send(sock, str.c_str(), size, 0)) < 0)
 	{
 		std::cout << std::strerror(errno) << std::endl;
-	//	exit(1);
+		FD_CLR(sock, FDSWrite);
+		close(sock);
+		return ;
 	}
 	if (writeInfo.find(sock) != writeInfo.end())
 	   	writeInfo[sock] += bytesSend;
 	else
 	   	writeInfo[sock] = bytesSend;
-
-	std::cout << "send" << bytesSend << std::endl;
-//	FD_CLR(sock, FDSWrite);
-	//FD_CLR(sock, FDSRead);
-	//FD_CLR(sock, &FDs);
-	//close(sock);
-	//readInfo.erase(readInfo.find(sock));
 	if (bytesSend == 0 || bytesSend < BUFFER_SIZE)
 	{
 		std::cout << "i am here" << std::endl;
 		writeInfo.erase(writeInfo.find(sock));
 		FD_CLR(sock, FDSWrite);
-		FD_CLR(sock, &FDs);
+		//FD_SET(sock, &FDs);
 		close(sock);
 	}
 //	if (httpParser->getConnectionType() == HTTP_KEEPALIVE_OFF)
-		//close(sock);
+//		close(sock);
 }

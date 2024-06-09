@@ -6,7 +6,7 @@
 /*   By: ayakoubi <ayakoubi@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/06 08:13:08 by ayakoubi          #+#    #+#             */
-/*   Updated: 2024/06/08 08:55:29 by ayakoubi         ###   ########.fr       */
+/*   Updated: 2024/06/09 10:17:06 by ayakoubi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,14 +14,16 @@
 #define TCPUTILS_HPP
 
 #include <iostream>
+#include <sstream>
 #include <vector>
 
 namespace TCPUtils
 {
 	std::vector<char>	storeDataInVec(char *buffer);
+	long stringToLong(const std::string& str);
 	int hexCharToInt(char c);
-	long hexToDecimal(const std::string& hex);
-	bool parseChunkedBody(std::string body);
+	size_t hexToDecimal(const std::string& hex);
+	std::pair<size_t, std::string> parseChunkedBody(const std::string& body);
 };
 
 #endif

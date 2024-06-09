@@ -6,7 +6,7 @@
 /*   By: ayakoubi <ayakoubi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/28 19:37:27 by ayakoubi          #+#    #+#             */
-/*   Updated: 2024/06/08 08:03:21 by ayakoubi         ###   ########.fr       */
+/*   Updated: 2024/06/09 01:25:08 by ayakoubi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,7 @@
 #include "../srcs/request/HTTPParser.hpp"
 #include "TCPUtils.hpp"
 
-#define BUFFER_SIZE 40
+#define BUFFER_SIZE 1024
 #define MAX_CONNECTION 10
 #define SERVERPORT  5555
 
@@ -46,6 +46,7 @@ class TCPServer
 		std::map<int, size_t> writeInfo;
 		std::map<int, std::string> reqInfo;
 		std::map<int, int> isChunked;
+		std::map<int, std::string> mapRest;
 		Map mapHeaders;
 	//	std::vector<char> data;
 	public:
@@ -60,7 +61,7 @@ class TCPServer
 		void	sendRoutine(int sock, fd_set *FDSWrite, fd_set *FDSRead);
 
 		void	handleTypeRequest(int sock);
-		void	handleChunkedRequest(int sock);
+		void	handleChunkedRequest(int sock, fd_set *FDSWrite);
 		void	handleSimpleRequest(int sock, std::string& request);
 
 		void	chunkRequest(std::string request, int *headerStatus);
