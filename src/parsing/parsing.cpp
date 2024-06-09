@@ -6,7 +6,7 @@
 /*   By: hkasbaou <hkasbaou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/26 14:07:13 by hkasbaou          #+#    #+#             */
-/*   Updated: 2024/06/07 20:36:36 by hkasbaou         ###   ########.fr       */
+/*   Updated: 2024/06/09 12:28:41 by hkasbaou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -144,24 +144,32 @@ void host_pars(Config &sv,std::string line)
         ft_exit("host::error ktar mn 1");
     if(resl[0].find("localhost") != std::string::npos)
         sv.set_host(resl[0]);
+        
+    if(resl[0].compare("127.0.0.1") != 0 && resl[0].compare("localhost") != 0 && resl[0].compare("10.12.8.2") != 0) 
+        ft_exit("host::error host incorrect");
+
+    if(resl[0].compare("localhost") == 0)
+        sv.set_host("127.0.0.1");
     else
-    {
-        if(resl[0].find_first_not_of("0123456789.") != std::string::npos)
-            ft_exit("host::error alphabetic");
-        if(get_count(resl[0],'.',1) != 3)
-            ft_exit("host::error .");
-        resl = split_stream(resl[0],'.');
-        for (size_t i = 0; i < resl.size(); i++)
-        {
-            if(resl[i].find_first_not_of("0123456789") != std::string::npos)
-                ft_exit("host::error alphabetic");
-            if(resl[i][0] == '0')
-                ft_exit("host::error 0");
-            if(std::stoi(resl[i]) < 0 || std::stoi(resl[i]) > 255)
-                ft_exit("host::error range");
-        }
-        sv.set_host(info);
-    }
+        sv.set_host(resl[0]);
+    // else
+    // {
+    //     if(resl[0].find_first_not_of("0123456789.") != std::string::npos)
+    //         ft_exit("host::error alphabetic");
+    //     if(get_count(resl[0],'.',1) != 3)
+    //         ft_exit("host::error .");
+    //     resl = split_stream(resl[0],'.');
+    //     for (size_t i = 0; i < resl.size(); i++)
+    //     {
+    //         if(resl[i].find_first_not_of("0123456789") != std::string::npos)
+    //             ft_exit("host::error alphabetic");
+    //         if(resl[i][0] == '0')
+    //             ft_exit("host::error 0");
+    //         if(std::stoi(resl[i]) < 0 || std::stoi(resl[i]) > 255)
+    //             ft_exit("host::error range");
+    //     }
+    //     sv.set_host(info);
+    // }
 }	
 void port_pars(Config &sv,std::string line)
 {
