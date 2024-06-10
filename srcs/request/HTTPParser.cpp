@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   HTTPParser.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ael-mhar <ael-mhar@student.1337.ma>        +#+  +:+       +#+        */
+/*   By: ayakoubi <ayakoubi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/11 10:00:28 by ael-mhar          #+#    #+#             */
-/*   Updated: 2024/06/05 22:08:41 by ayakoubi         ###   ########.fr       */
+/*   Updated: 2024/06/10 15:12:17 by ayakoubi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -306,6 +306,15 @@ void	HTTPParser::setConfig(Config config)
 	(void) config;
 }
 
+void	HTTPParser::setBody(const std::string& body)
+{
+	this->body = body;
+}
+
+String	HTTPParser::getBody(void)
+{
+	return (body);
+}
 
 http_keepalive_t	HTTPParser::getConnectionType(void)
 {

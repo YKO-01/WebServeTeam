@@ -6,7 +6,7 @@
 /*   By: ayakoubi <ayakoubi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/08 07:43:16 by ayakoubi          #+#    #+#             */
-/*   Updated: 2024/06/10 12:38:51 by ayakoubi         ###   ########.fr       */
+/*   Updated: 2024/06/10 15:09:04 by ayakoubi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 
 #include <iostream>
 #include "../request/HTTPParser.hpp"
+#include "../request/HTTPRequest.hpp"
 
 class Client
 {
@@ -35,6 +36,7 @@ class Client
 		void 	setRestBody(const std::string& restBody);
 		void	setIsChunked(const int& isChunked);
 		void	setHTTPParser(HTTPParser *httpParser);
+		void	setHTTPRequest(HTTPRequest *httpRequest);
 
 		std::string	getRequest() const;
 		std::string	getRestBody() const;

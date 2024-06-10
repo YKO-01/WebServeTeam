@@ -6,7 +6,7 @@
 /*   By: ayakoubi <ayakoubi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/15 13:37:56 by ayakoubi          #+#    #+#             */
-/*   Updated: 2024/06/10 14:54:55 by ayakoubi         ###   ########.fr       */
+/*   Updated: 2024/06/10 15:26:09 by ayakoubi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -191,7 +191,10 @@ void	TCPServer::runServer()
 				{
 					readRoutine(i, &FDSRead, &FDSWrite);
 					if (clients[i].getReadNum() == 0)
+					{
+						clients[i].getHTTPParser()->setBody(clients[i].getRequest());
 						clients[i].getHTTPParser()->setConfig(getConfigClient(i));
+					}
 				}
 				else if (FD_ISSET(i, &FDSWrite) && i != existSocket(i))
 				{
@@ -237,6 +240,7 @@ void		TCPServer::readRoutine(int sock, fd_set *FDSRead, fd_set *FDSWrite)
 		{
 			clients[sock].setHTTPParser(new HTTPParser(clients[sock].getRequest().substr(0, pos)));
 			clients[sock].setRestBody(clients[sock].getRequest().substr(pos + 4, clients[sock].getRequest().size()));
+			clients[sock].setRequest(clients[sock].getRestBody());
 			mapHeaders = clients[sock].getHTTPParser()->getHeaders();
 			clients[sock].setIsChunked(mapHeaders.find("transfer-encoding") != mapHeaders.end());
 		}	
