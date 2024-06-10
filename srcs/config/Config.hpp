@@ -6,13 +6,19 @@
 /*   By: hkasbaou <hkasbaou@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/26 14:07:22 by hkasbaou          #+#    #+#             */
-/*   Updated: 2024/06/09 09:18:31 by ayakoubi         ###   ########.fr       */
+/*   Updated: 2024/05/28 14:45:05 by hkasbaou         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef Config_HPP
 #define Config_HPP
 
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <vector>
+#include <iostream>
+#include <sstream>
 #include <iostream>
 #include <vector>
 #include <map>
@@ -35,13 +41,13 @@ enum cgi_extention
 typedef std::vector<std::vector<std::pair<std::string, std::vector<std::string> > > > vecOfvecOfPair;
 class Config {
     private:
-        std::string                 host;
-        std::string                 root;
-        int                         port;
+        std::string                 host;//localhost
+        std::string                 root;//
+        int                         port;//80
         std::vector<std::string>    server_names;
-        bool                        default_server;
+        bool                        default_server;//false
         std::map<int, std::string>  error_pages;
-        std::string                 client_body_size;
+        size_t                      client_body_size;//1000000
 		std::vector<Config>         all_info;
         std::vector<Route>          routes;
     public:
@@ -56,7 +62,8 @@ class Config {
         std::vector<std::string> get_server_names();
         bool get_default_server();
         std::map<int, std::string> get_error_pages();
-        std::string get_client_body_size();
+        size_t get_client_body_size();
+        
         std::vector<Route> get_routes();
 		// std::vector<Route> get_routes() ;
         std::vector<Config>& get_allInfo();
@@ -68,8 +75,9 @@ class Config {
         void set_server_names(std::vector<std::string> server_names);
         void set_default_server(bool default_server);
         void set_error_pages(int error_code, std::string error_page);
-        void set_client_body_size(std::string client_body_size);
+        void set_client_body_size(size_t client_body_size);
         void set_routes(Route routes);
+        
         
         
         void clear_server();

@@ -6,7 +6,7 @@
 /*   By: ayakoubi <ayakoubi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/28 19:37:27 by ayakoubi          #+#    #+#             */
-/*   Updated: 2024/06/09 01:25:08 by ayakoubi         ###   ########.fr       */
+/*   Updated: 2024/06/10 14:55:17 by ayakoubi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <sys/time.h>
 #include <fstream>
 #include <fcntl.h>
 #include <vector>
@@ -26,6 +27,7 @@
 #include "../srcs/config/Config.hpp"
 #include "../srcs/request/HTTPParser.hpp"
 #include "TCPUtils.hpp"
+#include "Client.hpp"
 
 #define BUFFER_SIZE 1024
 #define MAX_CONNECTION 10
@@ -38,17 +40,9 @@ class TCPServer
 		std::vector<int> serverSockets;
 		fd_set FDs;
 		int fdMax;
-		std::string header;
-		std::string body;
 		std::vector<Config> configs;
-		HTTPParser	*httpParser;
-		std::map<int, int> readInfo;
-		std::map<int, size_t> writeInfo;
-		std::map<int, std::string> reqInfo;
-		std::map<int, int> isChunked;
-		std::map<int, std::string> mapRest;
+		std::map<int, Client> clients;
 		Map mapHeaders;
-	//	std::vector<char> data;
 	public:
 		TCPServer();
 		TCPServer(Config &configs);
@@ -69,6 +63,7 @@ class TCPServer
 
 		void	fillVectorConfigs();
 		int		existSocket(int sock);
+		Config	getConfigClient(int sock);
 	//	void	setConfigs(Config &configs)
 
 		std::string& getHeader() const;
