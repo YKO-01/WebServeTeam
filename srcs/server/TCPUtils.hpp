@@ -14,6 +14,7 @@
 #define TCPUTILS_HPP
 
 #include <iostream>
+#include <cstring>
 #include <sstream>
 #include <vector>
 
@@ -23,7 +24,7 @@ namespace TCPUtils
 	long stringToLong(const std::string& str);
 	int hexCharToInt(char c);
 	size_t hexToDecimal(const std::string& hex);
-	std::pair<size_t, std::string> parseChunkedBody(const std::string& body);
+	std::string parseChunkedBody(std::string chunk);
 };
 
 #endif

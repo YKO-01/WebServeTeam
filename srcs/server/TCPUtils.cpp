@@ -46,7 +46,7 @@ size_t TCPUtils::hexToDecimal(const std::string& hex)
     }
     return result;
 }
-
+/*
 std::pair<size_t, std::string>	TCPUtils::parseChunkedBody(const std::string& body)
 {
 	size_t pos;
@@ -92,4 +92,39 @@ std::pair<size_t, std::string>	TCPUtils::parseChunkedBody(const std::string& bod
 	pairStr.second = body;
 	return (pairStr);
 }
+*/
 
+std::string TCPUtils::parseChunkedBody(std::string chunk)
+{
+	size_t pos;
+	size_t chunkedSize;
+	std::string str;
+	std::string tmp;
+
+	while (chunk.size())
+	{
+		pos = chunk.find("\r\n");
+		if (pos != std::string::npos)
+		{
+			tmp = chunk.substr(pos + 2, chunk.size());
+			chunkedSize = hexToDecimal(chunk.substr(0, pos));
+			if (chunkedSize == 0 && chunk.substr(0, pos) != "0")
+				str.append(chunk, pos);
+			else if (chunkedSize == 0)
+				tmp.erase(tmp.begin(), tmp.end());
+			else if (chunkedSize >= tmp.size())
+			{
+				str.append(tmp, tmp.size());
+				tmp.erase(tmp.begin(), tmp.end());
+			}
+			else if (chunkedSize < tmp.size())
+			{
+				std::cout << chunkedSize << std::endl;
+				str.append(tmp, 0, chunkedSize);
+				tmp.erase(0, tmp.find("\r\n") + 2);
+			}
+			chunk = tmp;
+		}
+	}
+	return (str);
+}

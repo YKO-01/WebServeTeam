@@ -28,6 +28,7 @@
 #include "../srcs/request/HTTPParser.hpp"
 #include "TCPUtils.hpp"
 #include "Client.hpp"
+#include <cstring>
 
 #define BUFFER_SIZE 1024
 #define MAX_CONNECTION 10

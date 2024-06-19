@@ -27,6 +27,10 @@ class Client
 		std::string	restBody;
 		HTTPParser	*httpParser;
 	public:
+		bool isHeader;
+		bool isBody;
+		std::string body;
+	public:
 		Client();
 		~Client();
 		

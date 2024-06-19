@@ -15,7 +15,7 @@
 
 # include <fstream>
 # include <sstream>
-
+# include <cstring>
 # include "IHTTPMethod.hpp"
 
 # include "../utils/Utils.hpp"

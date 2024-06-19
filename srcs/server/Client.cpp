@@ -17,7 +17,8 @@ Client::Client()
     isChunked = 0;
     readNum = 0;
     sendNum = 0;
-
+    isHeader = false;
+    isBody = false;
 }
 
 Client::~Client()

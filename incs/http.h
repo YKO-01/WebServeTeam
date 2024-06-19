@@ -21,6 +21,7 @@
 # define HTTP_MAX_VALUE 256   /* Max header field value length */
 
 # include <iostream>
+# include <cstdint>
 
 /*
  * HTTP state values...

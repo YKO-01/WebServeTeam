@@ -192,6 +192,7 @@ void	TCPServer::runServer()
 					readRoutine(i, &FDSRead, &FDSWrite);
 					if (clients[i].getReadNum() == 0)
 					{
+						std::cout << clients[i].body << std::endl;
 						clients[i].getHTTPParser()->setBody(clients[i].getRequest());
 						clients[i].getHTTPParser()->setConfig(getConfigClient(i));
 					}
@@ -216,39 +217,45 @@ void		TCPServer::readRoutine(int sock, fd_set *FDSRead, fd_set *FDSWrite)
 	int	bytesNum = 0;
 
 	(void) FDSRead;
-	if (!clients[sock].getIsChunked())
+	memset(buffer, 0, BUFFER_SIZE);
+	if ((bytesNum = recv(sock, buffer, BUFFER_SIZE, 0)) == 0)
 	{
-		memset(buffer, 0, BUFFER_SIZE);
-		if ((bytesNum = recv(sock, buffer, BUFFER_SIZE, 0)) == 0)
-		{
-			clients[sock].setReadNum(bytesNum);
-			FD_CLR(sock, &FDs);
-			FD_SET(sock, FDSWrite);
-		}
-		if (bytesNum < 0)
-		{
-			if (errno != EWOULDBLOCK)
-			{
-				FD_CLR(sock, &FDs);
-				close(sock);
-			}
-		}
 		clients[sock].setReadNum(bytesNum);
-		clients[sock].setRequest(clients[sock].getRequest().append(buffer, bytesNum));
+		FD_CLR(sock, &FDs);
+		FD_SET(sock, FDSWrite);
+	}
+	if (bytesNum < 0)
+	{
+		if (errno != EWOULDBLOCK)
+		{
+			FD_CLR(sock, &FDs);
+			close(sock);
+		}
+	}
+	clients[sock].setReadNum(bytesNum);
+	clients[sock].setRequest(clients[sock].getRequest().append(buffer, bytesNum));
+	if (!clients[sock].isHeader)
+	{
 		size_t pos = clients[sock].getRequest().find("\r\n\r\n");
 		if (pos != std::string::npos)
 		{
 			clients[sock].setHTTPParser(new HTTPParser(clients[sock].getRequest().substr(0, pos)));
-			clients[sock].setRestBody(clients[sock].getRequest().substr(pos + 4, clients[sock].getRequest().size()));
-			clients[sock].setRequest(clients[sock].getRestBody());
+			clients[sock].setRequest(clients[sock].getRequest().substr(pos + 4,  clients[sock].getRequest().size()));
 			mapHeaders = clients[sock].getHTTPParser()->getHeaders();
 			clients[sock].setIsChunked(mapHeaders.find("transfer-encoding") != mapHeaders.end());
+			clients[sock].isHeader = true;
+			clients[sock].isBody = true;
 		}	
 	}
-	if (clients[sock].getIsChunked())
+	if (clients[sock].isBody)
 	{
-		handleChunkedRequest(sock, FDSWrite);
-		return ;
+		if (clients[sock].getIsChunked())
+		{
+			std::string chunk = TCPUtils::parseChunkedBody(clients[sock].getRequest());
+			(clients[sock].body).append(chunk);
+		}
+		else
+			clients[sock].body = clients[sock].getRequest();
 	}
 	if (bytesNum < BUFFER_SIZE)
 	{
@@ -256,60 +263,6 @@ void		TCPServer::readRoutine(int sock, fd_set *FDSRead, fd_set *FDSWrite)
 		FD_CLR(sock, &FDs);
 		FD_SET(sock, FDSWrite);
 	}	
-}
-
-void	TCPServer::handleChunkedRequest(int sock, fd_set *FDSWrite)
-{
-	char buffer[BUFFER_SIZE];
-	int n;
-	std::string line;
-	std::string data;
-	std::pair<size_t, std::string> pairChunked;
-
-	pairChunked.first = 0;
-	if (clients[sock].getRestBody().size())
-	{
-		pairChunked = TCPUtils::parseChunkedBody(clients[sock].getRestBody());
-		clients[sock].setRequest(clients[sock].getRequest().append(pairChunked.second, pairChunked.second.size()));
-	}
-	if (!pairChunked.first)
-	{
-		while (1)
-		{
-			n = recv(sock, buffer, 1, 0);
-			if (n == 0)
-			{
-				FD_CLR(sock, &FDs);
-				close(sock);
-				return ;
-			}
-			if (n < 0)
-				break;
-			line += buffer[0];
-			if (line.size() >= 2 && line.find("\r\n") != std::string::npos)
-			{
-				line = line.substr(0, line.size() - 2);
-				break;
-			}
-		}
-		pairChunked.first = TCPUtils::hexToDecimal(line); 
-		if (pairChunked.first == 0)
-		{
-			std::cout << "end of chunked" << std::endl;
-			recv(sock, buffer, 2, 0);
-			FD_CLR(sock, &FDs);
-			FD_SET(sock, FDSWrite);
-			return ;
-		}
-	}
-	n = recv(sock, buffer, std::min(pairChunked.first, (size_t)BUFFER_SIZE), 0);
-	if (pairChunked.first > BUFFER_SIZE)
-	{
-		clients[sock].setRestBody(buffer);
-		return ;
-	}
-	clients[sock].setRequest(clients[sock].getRequest().append(buffer, n));
-	//mapRest.erase(mapRest.find(sock));
 }
 
 // __ Send Routine _____________________________________________________________
@@ -365,17 +318,18 @@ void	TCPServer::sendRoutine(int sock, fd_set *FDSWrite, fd_set *FDSRead)
 	{
 		clients[sock].setSendNum(0);
 		FD_CLR(sock, FDSWrite);
+		close(sock);
 		delete clients[sock].getHTTPParser();
-		if (clients[sock].getHTTPParser()->getConnectionType() == HTTP_KEEPALIVE_OFF)
+		/*if (clients[sock].getHTTPParser()->getConnectionType() == HTTP_KEEPALIVE_OFF)
 		{
 			clients.erase(sock);
 			close(sock);
 		}
 		else
-			FD_SET(sock, &FDs);
+			FD_SET(sock, &FDs);*/
 	}
-	struct timeval timeout;
+	/*struct timeval timeout;
     timeout.tv_sec = 5;
     timeout.tv_usec = 0;
-    setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
+    setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));*/
 }
