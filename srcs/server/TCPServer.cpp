@@ -126,6 +126,7 @@ bool TCPServer::acceptConnection(int serverSD, fd_set *FDSRead)
 	// timeval timeStart;
 	// gettimeofday(&timeStart, NULL);	
 	// timeKeepAlive[conSocket] = timeStart;
+	clients[conSocket].lastActivity = time(NULL);
 	std::cout << "client with id : " << conSocket << " is connected" << std::endl;
 	return (true);
 }
@@ -196,11 +197,21 @@ void	TCPServer::runServer()
 						clients[i].getHTTPParser()->setBody(clients[i].getRequest());
 						clients[i].getHTTPParser()->setConfig(getConfigClient(i));
 					}
+					if (!clients[i].handleTimeOut(i))
+					{
+						close(i);
+						clients.erase(clients.find(i));
+					}
 				}
 				else if (FD_ISSET(i, &FDSWrite) && i != existSocket(i))
 				{
 					if (clients[i].getReadNum() == 0)
 						sendRoutine(i, &FDSWrite, &FDSRead);
+					if (!clients[i].handleTimeOut(i))
+					{
+						close(i);
+						clients.erase(clients.find(i));
+					}
 				}
 			}
 		}
@@ -218,6 +229,7 @@ void		TCPServer::readRoutine(int sock, fd_set *FDSRead, fd_set *FDSWrite)
 
 	(void) FDSRead;
 	memset(buffer, 0, BUFFER_SIZE);
+	clients[sock].lastActivity = time(NULL);
 	if ((bytesNum = recv(sock, buffer, BUFFER_SIZE, 0)) == 0)
 	{
 		clients[sock].setReadNum(bytesNum);
@@ -314,12 +326,14 @@ void	TCPServer::sendRoutine(int sock, fd_set *FDSWrite, fd_set *FDSRead)
 	   	clients[sock].setSendNum(clients[sock].getSendNum() + bytesSend);
 	else
 	   	clients[sock].setSendNum(bytesSend);
+	clients[sock].lastActivity = time(NULL);
 	if (bytesSend == 0 || bytesSend < BUFFER_SIZE)
 	{
 		clients[sock].setSendNum(0);
 		FD_CLR(sock, FDSWrite);
-		close(sock);
-		delete clients[sock].getHTTPParser();
+		FD_SET(sock, &FDs);
+		//close(sock);
+		//delete clients[sock].getHTTPParser();
 		/*if (clients[sock].getHTTPParser()->getConnectionType() == HTTP_KEEPALIVE_OFF)
 		{
 			clients.erase(sock);

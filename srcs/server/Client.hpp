@@ -14,6 +14,7 @@
 #define CLIENT_HPP
 
 #include <iostream>
+#include <ctime>
 #include "../request/HTTPParser.hpp"
 #include "../request/HTTPRequest.hpp"
 
@@ -30,6 +31,7 @@ class Client
 		bool isHeader;
 		bool isBody;
 		std::string body;
+		size_t lastActivity;
 	public:
 		Client();
 		~Client();
@@ -48,6 +50,8 @@ class Client
 		size_t getSendNum() const;
 		int getIsChunked() const;
 		HTTPParser*	getHTTPParser() const;
+
+		bool	handleTimeOut(int sock);
 };
 
 #endif

@@ -84,3 +84,12 @@ void Client::setHTTPParser(HTTPParser *httpParser)
 {
     this->httpParser = httpParser;
 }
+
+bool Client::handleTimeOut(int sock)
+{
+	size_t currTime = time(NULL);
+
+	if (currTime - lastActivity > 10)
+		return false;
+	return (true);
+}
